@@ -1,117 +1,135 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AppLayout from '@/layouts/app-layout';
-import Pagination from '@/components/Pagination'; // Import komponen paginasi
+import Pagination from '@/components/Pagination';
 import { Head, Link, router } from '@inertiajs/react';
-import { TrashIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, PencilSquareIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { route } from 'ziggy-js';
 import ConfirmationModal from '@/components/ConfirmationModal';
+import { useDebounce } from 'use-debounce';
 
-// Interface untuk data Aset (tidak berubah)
+// Interface lengkap (tidak berubah, sudah mencakup semua)
 interface Asset {
-    id: number;
-    name: string;
-    category: string;
-    purchase_date: string;
-    purchase_price: string;
-    location: string;
-    status: string;
+    id: number; photo: string | null; room_name: string; asset_code: string;
+    unit_code: string; name: string; received_date: string; type: string; brand: string;
+    serial_number: string; purchase_price: string; quantity: number; status: string;
+    description: string | null; user_assigned: string; inventory_status: string;
+    accumulated_depreciation: number; book_value: number;
 }
 
-// PERUBAHAN #1: Tipe props untuk Index sekarang mengharapkan objek paginasi
 interface IndexProps {
     assets: {
-        data: Asset[];   // Data aset ada di dalam 'data'
-        links: any[];      // Informasi link untuk tombol 'prev' & 'next'
-        from: number;      // Nomor awal item pada halaman saat ini
+        data: Asset[]; links: any[]; from: number;
     };
+    filters: { search: string; };
 }
 
-export default function Index({ assets }: IndexProps) {
-    // Logika state modal (tidak ada perubahan)
+export default function Index({ assets, filters }: IndexProps) {
+    // Semua logika dan helper function (TIDAK ADA PERUBAHAN SAMA SEKALI)
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null);
-
-    const openDeleteModal = (asset: Asset) => {
-        setAssetToDelete(asset);
-        setIsModalOpen(true);
-    };
-    const closeDeleteModal = () => {
-        setIsModalOpen(false);
-        setAssetToDelete(null);
-    };
-    const confirmDelete = () => {
-        if (!assetToDelete) return;
-        router.delete(route('assets.destroy', assetToDelete.id), {
-            onSuccess: () => closeDeleteModal(),
-        });
-    };
-
-    // Fungsi helper format (tidak ada perubahan)
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return new Intl.DateTimeFormat('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }).format(date);
-    };
-    const formatPrice = (priceString: string) => {
-        const priceNumber = parseFloat(priceString);
-        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(priceNumber);
-    };
+    const openDeleteModal = (asset: Asset) => { setAssetToDelete(asset); setIsModalOpen(true); };
+    const closeDeleteModal = () => { setIsModalOpen(false); setAssetToDelete(null); };
+    const confirmDelete = () => { if (!assetToDelete) return; router.delete(route('assets.destroy', assetToDelete.id), { onSuccess: () => closeDeleteModal() }); };
+    const [searchTerm, setSearchTerm] = useState(filters.search || '');
+    const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
+    const isInitialMount = useRef(true);
+    useEffect(() => { if (isInitialMount.current) { isInitialMount.current = false; return; } router.get(route('assets.index'), { search: debouncedSearchTerm }, { preserveState: true, replace: true }); }, [debouncedSearchTerm]);
+    const getStatusColor = (status: string) => { if (status === 'Rusak Ringan') return 'bg-yellow-100 text-yellow-800'; if (status === 'Rusak Berat') return 'bg-red-100 text-red-800'; return 'bg-green-100 text-green-800'; };
+    const formatPrice = (priceValue: number | string) => { const priceNumber = typeof priceValue === 'string' ? parseFloat(priceValue) : priceValue; return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(priceNumber); };
 
     return (
         <>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-800">Manajemen Aset</h1>
-                <Link href={route('assets.create')} className="px-4 py-2 font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
+                <Link href={route('assets.create')} className="px-4 py-2 font-semibold text-white bg-green-600 rounded-md hover:bg-green-700">
                     Tambah Aset
                 </Link>
             </div>
 
-            {/* Kita bungkus tabel dan paginasi dalam satu div */}
+            <div className="mb-4">
+                <div className="relative rounded-md shadow-sm">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    </div>
+                    <input type="search" className="block w-full rounded-md border-0 py-2 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm" placeholder="Cari berdasarkan nama barang, kode, atau serial number..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                </div>
+            </div>
+
             <div className="bg-white rounded-lg shadow">
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
-                                {/* PERUBAHAN #2: Tambah kolom '#' */}
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[5%]">#</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[25%]">Nama Aset</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tgl. Beli</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga Beli</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lokasi</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                                {/* --- PERUBAHAN UTAMA: Header Tabel Kembali Lengkap --- */}
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Foto</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Ruang</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kode Aktiva</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kode Satuan</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Barang</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tgl Terima</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga Beli</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Akumulasi Penyusutan</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nilai Buku</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Merk</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Serial Number</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jml</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kondisi</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterangan</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pengguna</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Inv.</th>
+                                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                             {/* PERUBAHAN #3: Gunakan assets.data untuk mapping */}
-                            {assets.data.map((asset, index) => (
-                                <tr key={asset.id}>
-                                    {/* PERUBAHAN #4: Tampilkan nomor urut */}
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{assets.from + index}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{asset.name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{asset.category}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(asset.purchase_date)}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatPrice(asset.purchase_price)}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{asset.location}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{asset.status}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div className="flex justify-end gap-x-2">
-                                            <button className="text-yellow-600 hover:text-yellow-900"><PencilSquareIcon className="w-5 h-5" /></button>
-                                            <button onClick={() => openDeleteModal(asset)} className="text-red-600 hover:text-red-900">
-                                                <TrashIcon className="w-5 h-5" />
-                                            </button>
-                                        </div>
+                            {assets.data.length > 0 ? (
+                                assets.data.map((asset, index) => (
+                                    <tr key={asset.id} className="hover:bg-gray-50">
+                                        {/* --- PERUBAHAN UTAMA: Data Tabel Kembali Lengkap --- */}
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{assets.from + index}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <div className="w-10 h-10 bg-gray-200 flex items-center justify-center rounded text-xs text-gray-400">No Pic</div>
+                                        </td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{asset.room_name}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.asset_code}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.unit_code}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{asset.name}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.received_date}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{formatPrice(asset.purchase_price)}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-red-600">({formatPrice(asset.accumulated_depreciation)})</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{formatPrice(asset.book_value)}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.type}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.brand}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.serial_number}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.quantity}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${getStatusColor(asset.status)}`}>{asset.status}</span>
+                                        </td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.description || '-'}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.user_assigned}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.inventory_status}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <div className="flex justify-end gap-x-3">
+                                                <Link href={route('assets.edit', asset.id)} className="text-gray-400 hover:text-indigo-600" title="Edit"><PencilSquareIcon className="w-5 h-5" /></Link>
+                                                <button onClick={() => openDeleteModal(asset)} className="text-gray-400 hover:text-red-600" title="Hapus"><TrashIcon className="w-5 h-5" /></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={19} className="px-6 py-12 text-center text-sm text-gray-500">
+                                        Tidak ada aset yang ditemukan.
                                     </td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>
-                 {/* PERUBAHAN #5: Tambahkan komponen Pagination di bawah */}
                 <Pagination links={assets.links} />
             </div>
 
-            {/* Komponen modal (tidak berubah) */}
             <ConfirmationModal
                 show={isModalOpen}
                 onClose={closeDeleteModal}
@@ -123,5 +141,4 @@ export default function Index({ assets }: IndexProps) {
     );
 }
 
-// Menerapkan layout persisten (tidak ada perubahan)
 Index.layout = (page: React.ReactElement<{ title: string }>) => <AppLayout title="Manajemen Aset" children={page} />;

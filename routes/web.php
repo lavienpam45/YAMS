@@ -21,6 +21,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('assets/create', [AssetController::class, 'create'])->name('assets.create');
     Route::post('assets', [AssetController::class, 'store'])->name('assets.store');
     Route::delete('assets/{asset}', [AssetController::class, 'destroy'])->name('assets.destroy');
+    Route::get('assets/{asset}/edit', [AssetController::class, 'edit'])->name('assets.edit');
+    Route::put('assets/{asset}', [AssetController::class, 'update'])->name('assets.update');
 });
 
 require __DIR__.'/settings.php';

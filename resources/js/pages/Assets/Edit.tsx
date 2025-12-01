@@ -3,35 +3,57 @@ import React from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { route } from 'ziggy-js';
 
-export default function Create() {
-    // Menambahkan 'useful_life' dan 'salvage_value' ke dalam hook useForm
-    const { data, setData, post, processing, errors } = useForm({
-        name: '',
-        room_name: '',
-        asset_code: '',
-        unit_code: '',
-        received_date: '',
-        purchase_price: '',
-        useful_life: 5, // Default masa manfaat 5 tahun
-        salvage_value: 0, // Default nilai sisa 0
-        type: '',
-        brand: '',
-        serial_number: '',
-        quantity: 1,
-        status: 'Baik',
-        description: '',
-        user_assigned: '',
-        inventory_status: 'Tercatat',
+// Tipe untuk Aset yang datang dari Controller
+interface Asset {
+    id: number;
+    name: string;
+    room_name: string | null;
+    asset_code: string | null;
+    unit_code: string | null;
+    received_date: string | null;
+    purchase_price: string | null;
+    useful_life: number | null;
+    salvage_value: string | null;
+    type: string | null;
+    brand: string | null;
+    serial_number: string | null;
+    quantity: number;
+    status: string;
+    description: string | null;
+    user_assigned: string | null;
+    inventory_status: string | null;
+}
+
+export default function Edit({ asset }: { asset: Asset }) {
+    // Inisialisasi useForm dengan data aset yang sudah ada
+    const { data, setData, put, processing, errors } = useForm({
+        name: asset.name || '',
+        room_name: asset.room_name || '',
+        asset_code: asset.asset_code || '',
+        unit_code: asset.unit_code || '',
+        received_date: asset.received_date || '',
+        purchase_price: asset.purchase_price || '',
+        useful_life: asset.useful_life || 5,
+        salvage_value: asset.salvage_value || 0,
+        type: asset.type || '',
+        brand: asset.brand || '',
+        serial_number: asset.serial_number || '',
+        quantity: asset.quantity || 1,
+        status: asset.status || 'Baik',
+        description: asset.description || '',
+        user_assigned: asset.user_assigned || '',
+        inventory_status: asset.inventory_status || 'Tercatat',
     });
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        post(route('assets.store'));
+        // Menggunakan metode 'put' untuk update
+        put(route('assets.update', asset.id));
     }
 
     return (
         <>
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">Tambah Aset Baru</h1>
+            <h1 className="text-2xl font-bold text-gray-800 mb-6">Edit Aset</h1>
             <div className="p-6 bg-white rounded-lg shadow max-w-4xl mx-auto">
                 <form onSubmit={handleSubmit}>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -40,7 +62,6 @@ export default function Create() {
                             <label htmlFor="room_name" className="block text-sm font-medium text-gray-700">Nama Ruang</label>
                             <input type="text" id="room_name" value={data.room_name} onChange={e => setData('room_name', e.target.value)}
                                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-                            {errors.room_name && <div className="text-sm text-red-600 mt-1">{errors.room_name}</div>}
                         </div>
 
                         <div>
@@ -54,7 +75,6 @@ export default function Create() {
                             <label htmlFor="unit_code" className="block text-sm font-medium text-gray-700">Kode Satuan</label>
                             <input type="text" id="unit_code" value={data.unit_code} onChange={e => setData('unit_code', e.target.value)}
                                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-                            {errors.unit_code && <div className="text-sm text-red-600 mt-1">{errors.unit_code}</div>}
                         </div>
 
                         <div className="lg:col-span-3">
@@ -68,7 +88,6 @@ export default function Create() {
                             <label htmlFor="received_date" className="block text-sm font-medium text-gray-700">Tanggal Terima</label>
                             <input type="date" id="received_date" value={data.received_date} onChange={e => setData('received_date', e.target.value)}
                                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-                            {errors.received_date && <div className="text-sm text-red-600 mt-1">{errors.received_date}</div>}
                         </div>
 
                         <div>
@@ -160,8 +179,8 @@ export default function Create() {
                         <Link href={route('assets.index')} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">
                             Batal
                         </Link>
-                        <button type="submit" disabled={processing} className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50">
-                            {processing ? 'Menyimpan...' : 'Simpan Aset'}
+                        <button type="submit" disabled={processing} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50">
+                            {processing ? 'Memperbarui...' : 'Simpan Perubahan'}
                         </button>
                     </div>
                 </form>
@@ -170,4 +189,4 @@ export default function Create() {
     );
 }
 
-Create.layout = (page: React.ReactElement) => <AppLayout title="Tambah Aset Baru" children={page} />;
+Edit.layout = (page: React.ReactElement) => <AppLayout title="Edit Aset" children={page} />;
