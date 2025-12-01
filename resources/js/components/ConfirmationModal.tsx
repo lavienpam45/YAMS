@@ -1,6 +1,6 @@
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { Fragment } from 'react';
 
 // Mendefinisikan props yang akan diterima oleh komponen ini
 interface ConfirmationModalProps {
@@ -11,7 +11,13 @@ interface ConfirmationModalProps {
     message: string; // Pesan di dalam modal
 }
 
-export default function ConfirmationModal({ show, onClose, onConfirm, title, message }: ConfirmationModalProps) {
+export default function ConfirmationModal({
+    show,
+    onClose,
+    onConfirm,
+    title,
+    message,
+}: ConfirmationModalProps) {
     return (
         <Transition.Root show={show} as={Fragment}>
             <Dialog as="div" className="relative z-50" onClose={onClose}>
@@ -25,7 +31,7 @@ export default function ConfirmationModal({ show, onClose, onConfirm, title, mes
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+                    <div className="bg-opacity-75 fixed inset-0 bg-gray-500 transition-opacity" />
                 </Transition.Child>
 
                 <div className="fixed inset-0 z-10 overflow-y-auto">
@@ -45,15 +51,23 @@ export default function ConfirmationModal({ show, onClose, onConfirm, title, mes
                                     <div className="sm:flex sm:items-start">
                                         {/* Ikon Peringatan */}
                                         <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                                            <ExclamationTriangleIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
+                                            <ExclamationTriangleIcon
+                                                className="h-6 w-6 text-red-600"
+                                                aria-hidden="true"
+                                            />
                                         </div>
                                         {/* Konten Teks */}
                                         <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                                            <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
+                                            <Dialog.Title
+                                                as="h3"
+                                                className="text-lg leading-6 font-medium text-gray-900"
+                                            >
                                                 {title}
                                             </Dialog.Title>
                                             <div className="mt-2">
-                                                <p className="text-sm text-gray-500">{message}</p>
+                                                <p className="text-sm text-gray-500">
+                                                    {message}
+                                                </p>
                                             </div>
                                         </div>
                                     </div>

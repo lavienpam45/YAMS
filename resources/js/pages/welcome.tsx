@@ -1,7 +1,6 @@
-import { Head, Link } from '@inertiajs/react';
 import { dashboard, login } from '@/routes';
 import { type SharedData } from '@/types';
-import { usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 
 export default function Welcome() {
     const { auth } = usePage<SharedData>().props;
@@ -9,20 +8,20 @@ export default function Welcome() {
     return (
         <>
             <Head title="Welcome to YAMS" />
-            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 text-gray-800">
+            <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100 text-gray-800">
                 {/* Header dengan Tombol Login */}
-                <header className="absolute top-0 right-0 p-6 w-full flex justify-end">
+                <header className="absolute top-0 right-0 flex w-full justify-end p-6">
                     {auth.user ? (
                         <Link
                             href={dashboard()}
-                            className="px-6 py-3 font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition"
+                            className="rounded-md bg-indigo-600 px-6 py-3 font-semibold text-white transition hover:bg-indigo-700"
                         >
                             Dashboard
                         </Link>
                     ) : (
-                         <Link
+                        <Link
                             href={login()}
-                            className="px-6 py-3 font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition"
+                            className="rounded-md bg-indigo-600 px-6 py-3 font-semibold text-white transition hover:bg-indigo-700"
                         >
                             Login
                         </Link>
@@ -31,11 +30,12 @@ export default function Welcome() {
 
                 {/* Konten Utama */}
                 <main className="text-center">
-                    <h1 className="text-4xl md:text-5xl font-bold">
+                    <h1 className="text-4xl font-bold md:text-5xl">
                         Selamat Datang di YAMS
                     </h1>
                     <p className="mt-4 text-lg text-gray-600">
-                        Solusi manajemen dan penyusutan aset yang handal untuk bisnis Anda.
+                        Solusi manajemen dan penyusutan aset yang handal untuk
+                        bisnis Anda.
                     </p>
                     <p className="mt-2 text-gray-600">
                         Silakan login untuk memulai.

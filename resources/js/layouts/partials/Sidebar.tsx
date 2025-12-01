@@ -10,9 +10,8 @@ import {
 import { route } from 'ziggy-js';
 import { logout } from '@/routes';
 
-// Kita ubah struktur data link sedikit
 const navLinks = [
-    { name: 'Dashboard', routeName: 'dashboard', check: 'Dashboard', icon: HomeIcon },
+    { name: 'Dashboard', routeName: 'dashboard', check: 'dashboard', icon: HomeIcon },
     { name: 'Manajemen Aset', routeName: 'assets.index', check: 'Assets', icon: ArchiveBoxIcon },
     { name: 'Laporan', routeName: '#', check: 'Laporan', icon: ChartPieIcon },
     { name: 'Manajemen Pengguna', routeName: '#', check: 'Pengguna', icon: UsersIcon },
@@ -24,11 +23,7 @@ function classNames(...classes: string[]) {
 }
 
 export default function Sidebar() {
-    // === PERBAIKAN UTAMA DIMULAI DI SINI ===
-    // 'component' adalah nama file halaman yang sedang aktif, misal: "Dashboard", "Assets/Index"
-    // Ini bersifat reaktif, akan berubah setiap kali halaman berpindah
     const { component } = usePage();
-    // === AKHIR DARI PERBAIKAN ===
 
     return (
         <aside className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white shadow-md">
@@ -42,10 +37,9 @@ export default function Sidebar() {
                             {navLinks.map((item) => (
                                 <li key={item.name}>
                                     <Link
-                                        href={item.routeName === '#' ? '#' : route(item.routeName as any)}
+                                        href={item.routeName === '#' ? '#' : route(item.routeName)}
                                         className={classNames(
-                                            // LOGIKA BARU: Jika nama komponen dimulai dengan teks 'check', maka link ini aktif
-                                            component.startsWith(item.check)
+                                            component.toLowerCase().startsWith(item.check.toLowerCase())
                                                 ? 'bg-indigo-600 text-white'
                                                 : 'text-gray-700 hover:bg-gray-100',
                                             'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'

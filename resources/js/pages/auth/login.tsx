@@ -12,11 +12,15 @@ import { register } from '@/routes';
 
 export default function Login() {
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="flex min-h-screen items-center justify-center bg-gray-100">
             <Head title="Log in" />
-            <div className="w-full max-w-sm p-8 space-y-6 bg-white rounded-lg shadow-md">
-                 <h2 className="text-2xl font-bold text-center text-gray-800">YAMS</h2>
-                 <h3 className="text-xl font-semibold text-center text-gray-700">Login ke Akun Anda</h3>
+            <div className="w-full max-w-sm space-y-6 rounded-lg bg-white p-8 shadow-md">
+                <h2 className="text-center text-2xl font-bold text-gray-800">
+                    YAMS
+                </h2>
+                <h3 className="text-center text-xl font-semibold text-gray-700">
+                    Login ke Akun Anda
+                </h3>
                 <Form
                     {...store.form()}
                     resetOnSuccess={['password']}
@@ -61,14 +65,14 @@ export default function Login() {
                                 </Button>
                             </div>
 
-                             {/* === BLOK YANG DITAMBAHKAN === */}
+                            {/* === BLOK YANG DITAMBAHKAN === */}
                             <div className="text-center text-sm text-gray-600">
                                 Belum punya akun?{' '}
                                 <TextLink href={register()}>
                                     Daftar disini!
                                 </TextLink>
                             </div>
-                             {/* ============================= */}
+                            {/* ============================= */}
                         </>
                     )}
                 </Form>

@@ -1,5 +1,5 @@
-import { Link } from '@inertiajs/react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
+import { Link } from '@inertiajs/react';
 
 interface PaginatorLink {
     url: string | null;
@@ -16,7 +16,7 @@ export default function Pagination({ links }: PaginationProps) {
     if (links.length < 3) return null;
 
     return (
-        <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4 rounded-b-lg">
+        <div className="mt-4 flex items-center justify-between rounded-b-lg border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
             <div className="flex flex-1 justify-between sm:justify-end">
                 {/* Tombol Previous */}
                 <Link
@@ -25,7 +25,7 @@ export default function Pagination({ links }: PaginationProps) {
                     as="button"
                     disabled={!links[0].url}
                 >
-                     <ChevronLeftIcon className="h-5 w-5 mr-2" />
+                    <ChevronLeftIcon className="mr-2 h-5 w-5" />
                     Previous
                 </Link>
 
@@ -37,7 +37,7 @@ export default function Pagination({ links }: PaginationProps) {
                     disabled={!links[links.length - 1].url}
                 >
                     Next
-                    <ChevronRightIcon className="h-5 w-5 ml-2" />
+                    <ChevronRightIcon className="ml-2 h-5 w-5" />
                 </Link>
             </div>
         </div>

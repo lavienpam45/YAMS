@@ -30,7 +30,8 @@ export interface SharedData {
     [key: string]: unknown;
 
     // === TAMBAHAN KODE DI SINI ===
-    flash?: { // '?' berarti properti ini tidak wajib ada
+    flash?: {
+        // '?' berarti properti ini tidak wajib ada
         message?: string; // 'message' adalah string dan juga tidak wajib
     };
     // =============================

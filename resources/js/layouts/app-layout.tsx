@@ -1,9 +1,8 @@
-import { type PropsWithChildren, useEffect } from 'react';
-import { Head, usePage } from '@inertiajs/react';
 import Sidebar from '@/layouts/partials/Sidebar';
 import { type SharedData } from '@/types';
+import { Head, usePage } from '@inertiajs/react';
+import React, { useEffect } from 'react';
 import toast from 'react-hot-toast';
-import React from 'react';
 
 // Tipe untuk props yang akan diterima oleh layout ini
 interface AppLayoutProps {
@@ -25,8 +24,10 @@ export default function AppLayout({ children, title }: AppLayoutProps) {
             <Head title={title} />
             <Sidebar />
             <div className="pl-64">
-                <header className="bg-white shadow-sm p-4 sticky top-0 z-10">
-                    <h1 className="text-xl font-semibold text-gray-800">{title}</h1>
+                <header className="sticky top-0 z-10 bg-white p-4 shadow-sm">
+                    <h1 className="text-xl font-semibold text-gray-800">
+                        {title}
+                    </h1>
                 </header>
                 <main>
                     <div className="p-8">{children}</div>
