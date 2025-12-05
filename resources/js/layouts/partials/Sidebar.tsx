@@ -13,9 +13,9 @@ import { logout } from '@/routes';
 const navLinks = [
     { name: 'Dashboard', routeName: 'dashboard', check: 'dashboard', icon: HomeIcon },
     { name: 'Manajemen Aset', routeName: 'assets.index', check: 'Assets', icon: ArchiveBoxIcon },
-    // --- PERBAIKI RUTE DAN CHECK UNTUK LAPORAN ---
     { name: 'Laporan', routeName: 'reports.index', check: 'Reports', icon: ChartPieIcon },
-    { name: 'Manajemen Pengguna', routeName: '#', check: 'Pengguna', icon: UsersIcon },
+    // --- PERBAIKI RUTE DI SINI ---
+    { name: 'Manajemen Pengguna', routeName: 'users.index', check: 'Users', icon: UsersIcon },
     { name: 'Pengaturan', routeName: '#', check: 'Pengaturan', icon: Cog6ToothIcon },
 ];
 

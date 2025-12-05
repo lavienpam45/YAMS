@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany; // <-- TAMBAHKAN IMPORT INI
 
 class User extends Authenticatable
 {
@@ -48,5 +49,15 @@ class User extends Authenticatable
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * --- BAGIAN BARU YANG DITAMBAHKAN ---
+     * Menentukan relasi many-to-many ke model Role.
+     * Seorang User dapat memiliki banyak Role.
+     */
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class);
     }
 }
