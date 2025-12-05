@@ -1,20 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import Pagination from '@/components/Pagination';
-import { Head, Link, router } from '@inertiajs/react';
-import { TrashIcon, PencilSquareIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import { TrashIcon, PencilSquareIcon, MagnifyingGlassIcon, DocumentArrowUpIcon } from '@heroicons/react/24/outline';
 import { route } from 'ziggy-js';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { useDebounce } from 'use-debounce';
 
-// Interface Paginator
 interface PaginatorLink {
     url: string | null;
     label: string;
     active: boolean;
 }
 
-// Interface Asset Lengkap
 interface Asset {
     id: number;
     photo: string | null;
@@ -42,13 +40,28 @@ interface IndexProps {
         links: PaginatorLink[];
         from: number;
     };
-    filters: { search: string; };
+    filters: {
+        search: string;
+    };
+    // Tambahkan flash message di props
+    flash: {
+        message?: string;
+    };
 }
 
-export default function Index({ assets, filters }: IndexProps) {
+export default function Index({ assets, filters, flash }: IndexProps) {
     // --- State & Logika ---
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null);
+    const [searchTerm, setSearchTerm] = useState(filters.search || '');
+    const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
+    const isInitialMount = useRef(true);
+
+    const { data, setData, post, processing, errors } = useForm<{ file: File | null }>({
+        file: null,
+    });
+
+    // --- Helper Functions ---
     const openDeleteModal = (asset: Asset) => {
         setAssetToDelete(asset);
         setIsModalOpen(true);
@@ -63,22 +76,6 @@ export default function Index({ assets, filters }: IndexProps) {
             onSuccess: () => closeDeleteModal(),
         });
     };
-    const [searchTerm, setSearchTerm] = useState(filters.search || '');
-    const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
-    const isInitialMount = useRef(true);
-    useEffect(() => {
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
-            return;
-        }
-        router.get(
-            route('assets.index'),
-            { search: debouncedSearchTerm },
-            { preserveState: true, replace: true }
-        );
-    }, [debouncedSearchTerm]);
-
-    // --- Helper Functions ---
     const getStatusColor = (status: string) => {
         if (status === 'Rusak Ringan') return 'bg-yellow-100 text-yellow-800';
         if (status === 'Rusak Berat') return 'bg-red-100 text-red-800';
@@ -93,6 +90,31 @@ export default function Index({ assets, filters }: IndexProps) {
         }).format(priceNumber);
     };
 
+    function handleImportSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        if (!data.file) {
+            alert('Silakan pilih file untuk diimpor terlebih dahulu.');
+            return;
+        }
+        post(route('assets.import'), {
+            onSuccess: () => {
+                // reset formnya jika perlu
+            }
+        });
+    }
+
+    useEffect(() => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
+        router.get(
+            route('assets.index'),
+            { search: debouncedSearchTerm },
+            { preserveState: true, replace: true }
+        );
+    }, [debouncedSearchTerm]);
+
     return (
         <>
             <div className="flex justify-between items-center mb-6">
@@ -105,6 +127,33 @@ export default function Index({ assets, filters }: IndexProps) {
                 >
                     Tambah Aset
                 </Link>
+            </div>
+
+            <div className="mb-6 p-6 bg-white rounded-lg shadow">
+                <form onSubmit={handleImportSubmit}>
+                    <label htmlFor="import_file" className="block text-sm font-medium leading-6 text-gray-900">
+                        Import Data dari File
+                    </label>
+                    <div className="mt-2 flex items-center gap-x-3">
+                        <input
+                            type="file"
+                            onChange={(e) => setData('file', e.target.files ? e.target.files[0] : null)}
+                            className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        />
+                        <button
+                            type="submit"
+                            disabled={processing || !data.file}
+                            className="inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
+                        >
+                            <DocumentArrowUpIcon className="-ml-0.5 h-5 w-5" />
+                            Import
+                        </button>
+                    </div>
+                    {errors.file && <p className="mt-2 text-sm text-red-600">{errors.file}</p>}
+                    <p className="mt-2 text-xs text-gray-500">
+                        File harus dalam format .xlsx, .xls, atau .csv.
+                    </p>
+                </form>
             </div>
 
             <div className="mb-4">
@@ -148,7 +197,7 @@ export default function Index({ assets, filters }: IndexProps) {
                                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="divide-y divide-gray-200 bg-white">
                             {assets.data.length > 0 ? (
                                 assets.data.map((asset, index) => (
                                     <tr key={asset.id} className="hover:bg-gray-50">
@@ -176,12 +225,8 @@ export default function Index({ assets, filters }: IndexProps) {
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.inventory_status}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex justify-end gap-x-3">
-                                                <Link href={route('assets.edit', asset.id)} className="text-gray-400 hover:text-indigo-600" title="Edit">
-                                                    <PencilSquareIcon className="w-5 h-5" />
-                                                </Link>
-                                                <button onClick={() => openDeleteModal(asset)} className="text-gray-400 hover:text-red-600" title="Hapus">
-                                                    <TrashIcon className="w-5 h-5" />
-                                                </button>
+                                                <Link href={route('assets.edit', asset.id)} className="text-gray-400 hover:text-indigo-600" title="Edit"><PencilSquareIcon className="w-5 h-5" /></Link>
+                                                <button onClick={() => openDeleteModal(asset)} className="text-gray-400 hover:text-red-600" title="Hapus"><TrashIcon className="w-5 h-5" /></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -210,4 +255,6 @@ export default function Index({ assets, filters }: IndexProps) {
     );
 }
 
-Index.layout = (page: React.ReactElement<{ title: string }>) => <AppLayout title="Manajemen Aset" children={page} />;
+Index.layout = (page: React.ReactElement<{ title: string }>) => (
+    <AppLayout title="Manajemen Aset" children={page} />
+);

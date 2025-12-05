@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\AssetsImport;
 use App\Models\Asset;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AssetController extends Controller
 {
@@ -45,8 +47,8 @@ class AssetController extends Controller
             'unit_code' => 'nullable|string|max:255',
             'received_date' => 'nullable|date',
             'purchase_price' => 'required|numeric|min:0',
-            'useful_life' => 'required|integer|min:1', // Validasi baru
-            'salvage_value' => 'required|numeric|min:0', // Validasi baru
+            'useful_life' => 'required|integer|min:1',
+            'salvage_value' => 'required|numeric|min:0',
             'type' => 'nullable|string|max:255',
             'brand' => 'nullable|string|max:255',
             'serial_number' => 'nullable|string|max:255',
@@ -77,8 +79,8 @@ class AssetController extends Controller
             'unit_code' => 'nullable|string|max:255',
             'received_date' => 'nullable|date',
             'purchase_price' => 'required|numeric|min:0',
-            'useful_life' => 'required|integer|min:1', // Validasi baru
-            'salvage_value' => 'required|numeric|min:0', // Validasi baru
+            'useful_life' => 'required|integer|min:1',
+            'salvage_value' => 'required|numeric|min:0',
             'type' => 'nullable|string|max:255',
             'brand' => 'nullable|string|max:255',
             'serial_number' => 'nullable|string|max:255',
@@ -98,5 +100,16 @@ class AssetController extends Controller
     {
         $asset->delete();
         return redirect()->route('assets.index')->with('message', 'Aset berhasil dihapus.');
+    }
+
+    public function import(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv',
+        ]);
+
+        Excel::import(new AssetsImport, $request->file('file'));
+
+        return redirect()->route('assets.index')->with('message', 'File berhasil diunggah! Data sedang diproses.');
     }
 }
