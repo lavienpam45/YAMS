@@ -2,6 +2,12 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 import React from 'react';
 import { route } from 'ziggy-js';
+
+const absRoute = (name: string, params?: any) => {
+    const r = (route as any)(name, params);
+    if (typeof r === 'string' && !r.match(/^https?:\/\//) && !r.startsWith('/')) return '/' + r;
+    return r;
+};
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
 
 interface DepreciationHistory {
@@ -30,7 +36,7 @@ export default function Show({ asset }: { asset: Asset }) {
             <Head title={`Detail Aset - ${asset.name}`} />
 
             <div>
-                <Link href={route('assets.index')} className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 mb-4">
+                <Link href={absRoute('assets.index')} className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 mb-4">
                     <ArrowLeftIcon className="h-4 w-4" />
                     Kembali ke Daftar Aset
                 </Link>

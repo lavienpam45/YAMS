@@ -3,6 +3,12 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import React from 'react';
 import { route } from 'ziggy-js';
 
+const absRoute = (name: string, params?: any) => {
+    const r = (route as any)(name, params);
+    if (typeof r === 'string' && !r.match(/^https?:\/\//) && !r.startsWith('/')) return '/' + r;
+    return r;
+};
+
 export default function Create() {
     // Menambahkan 'photo' ke tipe data form
     const { data, setData, post, processing, errors } = useForm<{
@@ -46,7 +52,7 @@ export default function Create() {
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         // Inertia otomatis menangani multipart/form-data saat ada objek File
-        post(route('assets.store'));
+        post(absRoute('assets.store'));
     }
 
     return (
@@ -184,7 +190,7 @@ export default function Create() {
                     </div>
 
                     <div className="mt-6 flex justify-end gap-4">
-                        <Link href={route('assets.index')} className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300">
+                        <Link href={absRoute('assets.index')} className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300">
                             Batal
                         </Link>
                         <button type="submit" disabled={processing} className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50">

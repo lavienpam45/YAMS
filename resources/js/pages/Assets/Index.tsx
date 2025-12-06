@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import Pagination from '@/components/Pagination';
 import { Head, Link, router, useForm } from '@inertiajs/react';
@@ -40,16 +40,27 @@ interface IndexProps {
         links: PaginatorLink[];
         from: number;
     };
-    filters: { search: string; };
-    flash: { message?: string; error?: string; };
+    filters: {
+        search: string;
+    };
+    flash?: {
+        message?: string;
+        error?: string;
+    };
 }
 
-export default function Index({ assets, filters, flash }: IndexProps) {
+export default function Index({ assets, filters }: IndexProps) {
+    // Helper: pastikan route yang dihasilkan absolut (memulai dengan `/`)
+    const absRoute = (name: string, params?: any) => {
+        const r = (route as any)(name, params);
+        if (typeof r === 'string' && !r.match(/^https?:\/\//) && !r.startsWith('/')) return '/' + r;
+        return r;
+    };
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null);
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
-    const isInitialMount = useRef(true);
+
     const { data, setData, post, processing, errors } = useForm<{ file: File | null }>({
         file: null,
     });
@@ -65,7 +76,7 @@ export default function Index({ assets, filters, flash }: IndexProps) {
     };
     const confirmDelete = () => {
         if (!assetToDelete) return;
-        router.delete(route('assets.destroy', assetToDelete.id), {
+        router.delete(absRoute('assets.destroy', assetToDelete.id), {
             onSuccess: () => closeDeleteModal(),
         });
     };
@@ -89,19 +100,25 @@ export default function Index({ assets, filters, flash }: IndexProps) {
             alert('Silakan pilih file untuk diimpor terlebih dahulu.');
             return;
         }
-        post(route('assets.import'));
+        post(absRoute('assets.import'));
     }
 
     useEffect(() => {
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
-            return;
+        // Objek untuk menampung parameter query
+        const queryParams: Record<string, string> = {};
+
+        // Hanya tambahkan parameter 'search' jika ada isinya
+        if (debouncedSearchTerm) {
+            queryParams.search = debouncedSearchTerm;
         }
-        router.get(
-            route('assets.index'),
-            { search: debouncedSearchTerm },
-            { preserveState: true, replace: true }
-        );
+
+        // Lakukan request. Inertia akan menangani parameter 'page' secara otomatis
+        // jika kita tidak menyentuhnya. Jika queryParams kosong, ia akan ke URL dasar.
+        router.get(absRoute('assets.index'), queryParams, {
+            preserveState: true,
+            replace: true,
+            preserveScroll: true,
+        });
     }, [debouncedSearchTerm]);
 
     return (
@@ -109,11 +126,13 @@ export default function Index({ assets, filters, flash }: IndexProps) {
             <Head title="Manajemen Aset" />
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-800">Manajemen Aset</h1>
-                <Link href={route('assets.create')} className="rounded-md bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700">
+                <Link
+                    href={absRoute('assets.create')}
+                    className="rounded-md bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700"
+                >
                     Tambah Aset
                 </Link>
             </div>
-
             <div className="mb-6 p-6 bg-white rounded-lg shadow">
                 <form onSubmit={handleImportSubmit}>
                     <label htmlFor="import_file" className="block text-sm font-medium leading-6 text-gray-900">Import Data dari File</label>
@@ -132,16 +151,20 @@ export default function Index({ assets, filters, flash }: IndexProps) {
                     <p className="mt-2 text-xs text-gray-500">File harus dalam format .xlsx, .xls, atau .csv.</p>
                 </form>
             </div>
-
             <div className="mb-4">
                 <div className="relative rounded-md shadow-sm">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                         <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
                     </div>
-                    <input type="search" className="block w-full rounded-md border-0 py-2 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm" placeholder="Cari berdasarkan nama barang, kode, atau serial number..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                    <input
+                        type="search"
+                        className="block w-full rounded-md border-0 py-2 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
+                        placeholder="Cari berdasarkan nama barang, kode, atau serial number..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                 </div>
             </div>
-
             <div className="bg-white rounded-lg shadow">
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
@@ -169,40 +192,48 @@ export default function Index({ assets, filters, flash }: IndexProps) {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {assets.data.map((asset, index) => (
-                                <Link as="tr" href={route('assets.show', asset.id)} key={asset.id} className="hover:bg-gray-50 cursor-pointer">
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{assets.from + index}</td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {asset.photo ? (
-                                            <img src={`/storage/${asset.photo}`} alt={asset.name} className="h-10 w-10 object-cover rounded" />
-                                        ) : (
-                                            <div className="flex h-10 w-10 items-center justify-center rounded bg-gray-200 text-xs text-gray-400">No Pic</div>
-                                        )}
+                            {assets.data.length > 0 ? (
+                                assets.data.map((asset, index) => (
+                                    <Link as="tr" href={absRoute('assets.show', asset.id)} key={asset.id} className="hover:bg-gray-50 cursor-pointer">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{assets.from + index}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {asset.photo ? (
+                                                <img src={`/storage/${asset.photo}`} alt={asset.name} className="h-10 w-10 object-cover rounded" />
+                                            ) : (
+                                                <div className="flex h-10 w-10 items-center justify-center rounded bg-gray-200 text-xs text-gray-400">No Pic</div>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{asset.room_name}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.asset_code}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.unit_code}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{asset.name}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.received_date}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{formatPrice(asset.purchase_price)}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-red-600">({formatPrice(asset.accumulated_depreciation)})</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{formatPrice(asset.book_value)}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.type}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.brand}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.serial_number}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.quantity}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500"><span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${getStatusColor(asset.status)}`}>{asset.status}</span></td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.description || '-'}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.user_assigned}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.inventory_status}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <div className="flex justify-end gap-x-3">
+                                                <Link href={absRoute('assets.edit', asset.id)} onClick={(e) => e.stopPropagation()} className="text-gray-400 hover:text-indigo-600" title="Edit"><PencilSquareIcon className="w-5 h-5" /></Link>
+                                                <button onClick={(e) => openDeleteModal(e, asset)} className="text-gray-400 hover:text-red-600" title="Hapus"><TrashIcon className="w-5 h-5" /></button>
+                                            </div>
+                                        </td>
+                                    </Link>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={19} className="px-6 py-12 text-center text-sm text-gray-500">
+                                        Tidak ada aset yang ditemukan.
                                     </td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{asset.room_name}</td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.asset_code}</td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.unit_code}</td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{asset.name}</td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.received_date}</td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{formatPrice(asset.purchase_price)}</td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-red-600">({formatPrice(asset.accumulated_depreciation)})</td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{formatPrice(asset.book_value)}</td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.type}</td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.brand}</td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.serial_number}</td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.quantity}</td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500"><span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${getStatusColor(asset.status)}`}>{asset.status}</span></td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.description || '-'}</td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.user_assigned}</td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.inventory_status}</td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div className="flex justify-end gap-x-3">
-                                            <Link href={route('assets.edit', asset.id)} onClick={(e) => e.stopPropagation()} className="text-gray-400 hover:text-indigo-600" title="Edit"><PencilSquareIcon className="w-5 h-5" /></Link>
-                                            <button onClick={(e) => openDeleteModal(e, asset)} className="text-gray-400 hover:text-red-600" title="Hapus"><TrashIcon className="w-5 h-5" /></button>
-                                        </div>
-                                    </td>
-                                </Link>
-                            ))}
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>

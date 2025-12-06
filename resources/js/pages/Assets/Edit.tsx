@@ -3,6 +3,12 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import React from 'react';
 import { route } from 'ziggy-js';
 
+const absRoute = (name: string, params?: any) => {
+    const r = (route as any)(name, params);
+    if (typeof r === 'string' && !r.match(/^https?:\/\//) && !r.startsWith('/')) return '/' + r;
+    return r;
+};
+
 // Tipe untuk Aset yang datang dari Controller
 interface Asset {
     id: number;
@@ -71,7 +77,7 @@ export default function Edit({ asset }: { asset: Asset }) {
         e.preventDefault();
         // Gunakan metode 'post' karena kita mengirim file,
         // Laravel akan menganggapnya sebagai 'PUT' karena ada '_method'
-        post(route('assets.update', asset.id));
+        post(absRoute('assets.update', asset.id));
     }
 
     return (
@@ -178,7 +184,7 @@ export default function Edit({ asset }: { asset: Asset }) {
                         </div>
                     </div>
                     <div className="mt-6 flex justify-end gap-4">
-                        <Link href={route('assets.index')} className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300">
+                        <Link href={absRoute('assets.index')} className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300">
                             Batal
                         </Link>
                         <button type="submit" disabled={processing} className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50">
