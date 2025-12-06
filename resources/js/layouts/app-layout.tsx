@@ -6,9 +6,17 @@ import toast from 'react-hot-toast';
 import React from 'react';
 import { HomeIcon, ArchiveBoxIcon, ChartPieIcon, UsersIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 
-export default function AppLayout({ children }: PropsWithChildren) {
-    const { props } = usePage<SharedData & { title?: string }>();
-    const { auth, flash, title } = props;
+// --- PERBAIKAN UTAMA DI SINI ---
+// Definisikan tipe props yang diterima oleh AppLayout
+interface AppLayoutProps {
+    children: React.ReactNode;
+    title: string;
+}
+
+export default function AppLayout({ children, title }: AppLayoutProps) {
+    // Kita tidak perlu lagi mengambil 'title' dari usePage
+    const { props } = usePage<SharedData>();
+    const { auth, flash } = props;
     const roles = auth.roles || [];
 
     useEffect(() => {
@@ -20,23 +28,21 @@ export default function AppLayout({ children }: PropsWithChildren) {
         }
     }, [flash]);
 
-    // Definisikan semua kemungkinan link menu beserta peran yang diizinkan
     const allNavLinks = [
         { name: 'Dashboard', routeName: 'dashboard', check: 'dashboard', icon: HomeIcon, allowed: ['superadmin', 'admin', 'user'] },
         { name: 'Manajemen Aset', routeName: 'assets.index', check: 'Assets', icon: ArchiveBoxIcon, allowed: ['superadmin', 'admin'] },
-        { name: 'Laporan', routeName: 'reports.index', check: 'Reports', icon: ChartPieIcon, allowed: ['superadmin', 'admin'] }, // Dihapus 'user'
+        { name: 'Laporan', routeName: 'reports.index', check: 'Reports', icon: ChartPieIcon, allowed: ['superadmin', 'admin'] },
         { name: 'Manajemen Pengguna', routeName: 'users.index', check: 'Users', icon: UsersIcon, allowed: ['superadmin'] },
         { name: 'Pengaturan', routeName: 'settings.show', check: 'settings', icon: Cog6ToothIcon, allowed: ['superadmin'] },
     ];
 
-    // Logika untuk memfilter menu berdasarkan peran pengguna yang login
     const filteredNavLinks = allNavLinks.filter(link =>
         link.allowed.some(allowedRole => roles.includes(allowedRole))
     );
 
     return (
         <div className="min-h-screen bg-gray-100">
-            <Head title={title || 'YAMS'} />
+            <Head title={title} />
 
             <Sidebar navLinks={filteredNavLinks} />
 

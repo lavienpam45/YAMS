@@ -40,12 +40,8 @@ interface IndexProps {
         links: PaginatorLink[];
         from: number;
     };
-    filters: {
-        search: string;
-    };
-    flash: {
-        message?: string;
-    };
+    filters: { search: string; };
+    flash: { message?: string; error?: string; };
 }
 
 export default function Index({ assets, filters, flash }: IndexProps) {
@@ -63,25 +59,21 @@ export default function Index({ assets, filters, flash }: IndexProps) {
         setAssetToDelete(asset);
         setIsModalOpen(true);
     };
-
     const closeDeleteModal = () => {
         setIsModalOpen(false);
         setAssetToDelete(null);
     };
-
     const confirmDelete = () => {
         if (!assetToDelete) return;
         router.delete(route('assets.destroy', assetToDelete.id), {
             onSuccess: () => closeDeleteModal(),
         });
     };
-
     const getStatusColor = (status: string) => {
         if (status === 'Rusak Ringan') return 'bg-yellow-100 text-yellow-800';
         if (status === 'Rusak Berat') return 'bg-red-100 text-red-800';
         return 'bg-green-100 text-green-800';
     };
-
     const formatPrice = (priceValue: number | string) => {
         const priceNumber = typeof priceValue === 'string' ? parseFloat(priceValue) : priceValue;
         return new Intl.NumberFormat('id-ID', {
@@ -114,12 +106,10 @@ export default function Index({ assets, filters, flash }: IndexProps) {
 
     return (
         <>
+            <Head title="Manajemen Aset" />
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-800">Manajemen Aset</h1>
-                <Link
-                    href={route('assets.create')}
-                    className="rounded-md bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700"
-                >
+                <Link href={route('assets.create')} className="rounded-md bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700">
                     Tambah Aset
                 </Link>
             </div>
@@ -156,7 +146,6 @@ export default function Index({ assets, filters, flash }: IndexProps) {
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
-                            {/* ... Isi thead tidak berubah ... */}
                             <tr>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">No</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Foto</th>
@@ -179,44 +168,41 @@ export default function Index({ assets, filters, flash }: IndexProps) {
                                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200 bg-white">
-                            {assets.data.length > 0 ? (
-                                assets.data.map((asset, index) => (
-                                    // GANTI 'tr' BIASA MENJADI <Link as="tr">
-                                    <Link as="tr" href={route('assets.show', asset.id)} key={asset.id} className="hover:bg-gray-50 cursor-pointer">
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{assets.from + index}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500"><div className="flex h-10 w-10 items-center justify-center rounded bg-gray-200 text-xs text-gray-400">No Pic</div></td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{asset.room_name}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.asset_code}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.unit_code}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{asset.name}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.received_date}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{formatPrice(asset.purchase_price)}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-red-600">({formatPrice(asset.accumulated_depreciation)})</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{formatPrice(asset.book_value)}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.type}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.brand}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.serial_number}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.quantity}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500"><span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${getStatusColor(asset.status)}`}>{asset.status}</span></td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.description || '-'}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.user_assigned}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.inventory_status}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div className="flex justify-end gap-x-3">
-                                                <Link href={route('assets.edit', asset.id)} onClick={(e) => e.stopPropagation()} className="text-gray-400 hover:text-indigo-600" title="Edit"><PencilSquareIcon className="w-5 h-5" /></Link>
-                                                <button onClick={(e) => openDeleteModal(e, asset)} className="text-gray-400 hover:text-red-600" title="Hapus"><TrashIcon className="w-5 h-5" /></button>
-                                            </div>
-                                        </td>
-                                    </Link> // GANTI 'tr' BIASA MENJADI <Link>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={19} className="px-6 py-12 text-center text-sm text-gray-500">
-                                        Tidak ada aset yang ditemukan.
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {assets.data.map((asset, index) => (
+                                <Link as="tr" href={route('assets.show', asset.id)} key={asset.id} className="hover:bg-gray-50 cursor-pointer">
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{assets.from + index}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {asset.photo ? (
+                                            <img src={`/storage/${asset.photo}`} alt={asset.name} className="h-10 w-10 object-cover rounded" />
+                                        ) : (
+                                            <div className="flex h-10 w-10 items-center justify-center rounded bg-gray-200 text-xs text-gray-400">No Pic</div>
+                                        )}
                                     </td>
-                                </tr>
-                            )}
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{asset.room_name}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.asset_code}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.unit_code}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{asset.name}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.received_date}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{formatPrice(asset.purchase_price)}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-red-600">({formatPrice(asset.accumulated_depreciation)})</td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{formatPrice(asset.book_value)}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.type}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.brand}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.serial_number}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.quantity}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500"><span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${getStatusColor(asset.status)}`}>{asset.status}</span></td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.description || '-'}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.user_assigned}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.inventory_status}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div className="flex justify-end gap-x-3">
+                                            <Link href={route('assets.edit', asset.id)} onClick={(e) => e.stopPropagation()} className="text-gray-400 hover:text-indigo-600" title="Edit"><PencilSquareIcon className="w-5 h-5" /></Link>
+                                            <button onClick={(e) => openDeleteModal(e, asset)} className="text-gray-400 hover:text-red-600" title="Hapus"><TrashIcon className="w-5 h-5" /></button>
+                                        </div>
+                                    </td>
+                                </Link>
+                            ))}
                         </tbody>
                     </table>
                 </div>
@@ -227,6 +213,4 @@ export default function Index({ assets, filters, flash }: IndexProps) {
     );
 }
 
-Index.layout = (page: React.ReactElement<{ title: string }>) => (
-    <AppLayout title="Manajemen Aset" children={page} />
-);
+Index.layout = (page: React.ReactElement<{ title: string }>) => (<AppLayout title="Manajemen Aset" children={page} />);

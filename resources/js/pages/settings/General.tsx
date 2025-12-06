@@ -1,6 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import React from 'react';
-import { Head } from '@inertiajs/react'; // Pastikan Head diimpor
+import { Head } from '@inertiajs/react';
 
 // Komponen Card
 const SettingsCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -16,11 +16,8 @@ const SettingsCard = ({ title, children }: { title: string; children: React.Reac
 
 export default function General() {
     return (
-        // Hapus AppLayout dari sini
         <>
-            {/* --- PERBAIKAN UTAMA: GUNAKAN <Head> UNTUK MENGATUR JUDUL --- */}
             <Head title="Pengaturan" />
-
             <h1 className="text-2xl font-bold text-gray-800 mb-6">Pengaturan</h1>
             <div className="space-y-6">
 
@@ -84,5 +81,10 @@ export default function General() {
     );
 }
 
-// === PERBAIKAN FINAL: Gunakan pola yang sama persis seperti Index.tsx ===
-General.layout = (page: React.ReactElement) => <AppLayout children={page} />;
+// === PERBAIKAN FINAL DI SINI ===
+// Menggunakan pola yang sama persis seperti file-file lain yang sudah berhasil
+General.layout = (page: React.ReactElement) => (
+    <AppLayout title="Pengaturan">
+        {page}
+    </AppLayout>
+);

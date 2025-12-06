@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Storage; // Pastikan Storage di-import
 
 class AssetController extends Controller
 {
@@ -40,7 +41,8 @@ class AssetController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
+        // Validasi semua field termasuk 'photo'
+        $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'room_name' => 'nullable|string|max:255',
             'asset_code' => 'nullable|string|max:255|unique:assets',
@@ -57,9 +59,16 @@ class AssetController extends Controller
             'description' => 'nullable|string',
             'user_assigned' => 'nullable|string|max:255',
             'inventory_status' => 'nullable|string|max:255',
+            'photo' => 'nullable|image|max:2048', // Max 2MB
         ]);
 
-        Asset::create($request->all());
+        // Proses upload file jika ada
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('asset-photos', 'public');
+            $validatedData['photo'] = $path;
+        }
+
+        Asset::create($validatedData);
 
         return redirect()->route('assets.index')->with('message', 'Aset berhasil ditambahkan.');
     }
@@ -73,7 +82,7 @@ class AssetController extends Controller
 
     public function update(Request $request, Asset $asset): RedirectResponse
     {
-        $request->validate([
+        $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'room_name' => 'nullable|string|max:255',
             'unit_code' => 'nullable|string|max:255',
@@ -89,15 +98,31 @@ class AssetController extends Controller
             'description' => 'nullable|string',
             'user_assigned' => 'nullable|string|max:255',
             'inventory_status' => 'nullable|string|max:255',
+            'photo' => 'nullable|image|max:2048', // Validasi foto baru (jika ada)
         ]);
 
-        $asset->update($request->all());
+        if ($request->hasFile('photo')) {
+            // Hapus foto lama jika ada
+            if ($asset->photo) {
+                Storage::disk('public')->delete($asset->photo);
+            }
+            // Simpan foto baru
+            $path = $request->file('photo')->store('asset-photos', 'public');
+            $validatedData['photo'] = $path;
+        }
+
+        $asset->update($validatedData);
 
         return redirect()->route('assets.index')->with('message', 'Aset berhasil diperbarui.');
     }
 
     public function destroy(Asset $asset): RedirectResponse
     {
+        // Hapus file foto terkait jika ada
+        if ($asset->photo) {
+            Storage::disk('public')->delete($asset->photo);
+        }
+
         $asset->delete();
         return redirect()->route('assets.index')->with('message', 'Aset berhasil dihapus.');
     }
@@ -113,17 +138,9 @@ class AssetController extends Controller
         return redirect()->route('assets.index')->with('message', 'File berhasil diunggah! Data sedang diproses.');
     }
 
-    /**
-     * FUNGSI BARU: Menampilkan halaman detail untuk satu aset.
-     * Laravel akan otomatis menemukan data 'Asset' berdasarkan ID dari URL.
-     */
     public function show(Asset $asset): Response
     {
-        // 'load()' adalah cara untuk memuat relasi pada model yang sudah ada.
-        // Kita memuat relasi 'depreciationHistories' yang baru saja kita buat.
         $asset->load('depreciationHistories');
-
-        // Kirim data aset tunggal ini ke komponen React
         return Inertia::render('Assets/Show', [
             'asset' => $asset
         ]);

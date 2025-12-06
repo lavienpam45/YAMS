@@ -4,56 +4,24 @@ import React from 'react';
 import { route } from 'ziggy-js';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
 
-// Interface BARU untuk catatan riwayat tunggal
 interface DepreciationHistory {
-    id: number;
-    year: number;
-    book_value_start: string;
-    depreciation_value: string;
-    book_value_end: string;
+    id: number; year: number; book_value_start: string;
+    depreciation_value: string; book_value_end: string;
 }
 
-// Interface Asset sekarang menyertakan array riwayat
 interface Asset {
-    id: number;
-    name: string;
-    photo: string | null;
-    room_name: string;
-    asset_code: string;
-    unit_code: string;
-    received_date: string;
-    type: string;
-    brand: string;
-    serial_number: string;
-    purchase_price: string;
-    useful_life: number;
-    salvage_value: string;
-    quantity: number;
-    status: string;
-    description: string | null;
-    user_assigned: string;
-    inventory_status: string;
-    accumulated_depreciation: number;
-    book_value: number;
+    id: number; name: string; photo: string | null; room_name: string;
+    asset_code: string; unit_code: string; received_date: string; type: string;
+    brand: string; serial_number: string; purchase_price: string;
+    useful_life: number; salvage_value: string;
+    quantity: number; status: string; description: string | null;
+    user_assigned: string; inventory_status: string;
+    accumulated_depreciation: number; book_value: number;
     depreciation_histories: DepreciationHistory[];
 }
 
-// Helper function untuk format harga
-const formatPrice = (value: number | string) => {
-    const numberValue = typeof value === 'string' ? parseFloat(value) : value;
-    if (isNaN(numberValue)) {
-        return '-';
-    }
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(numberValue);
-};
-
-// Komponen kecil untuk menampilkan baris detail
-const DetailItem = ({ label, value }: { label: string, value: string | number | null | undefined }) => (
-    <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-        <dt className="text-sm font-medium leading-6 text-gray-500">{label}</dt>
-        <dd className="mt-1 text-sm font-semibold leading-6 text-gray-900 sm:col-span-2 sm:mt-0">{value || '-'}</dd>
-    </div>
-);
+const formatPrice = (value: number | string) => { const numberValue = typeof value === 'string' ? parseFloat(value) : value; if (isNaN(numberValue)) { return '-'; } return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(numberValue); };
+const DetailItem = ({ label, value }: { label: string, value: string | number | null | undefined }) => ( <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0"><dt className="text-sm font-medium leading-6 text-gray-500">{label}</dt><dd className="mt-1 text-sm font-semibold leading-6 text-gray-900 sm:col-span-2 sm:mt-0">{value || '-'}</dd></div> );
 
 export default function Show({ asset }: { asset: Asset }) {
 
@@ -68,16 +36,19 @@ export default function Show({ asset }: { asset: Asset }) {
                 </Link>
             </div>
 
+            <div className="mb-6 bg-white rounded-lg shadow">
+                <img
+                    src={asset.photo ? `/storage/${asset.photo}` : 'https://via.placeholder.com/1200x600.png?text=No+Image+Available'}
+                    alt={`Foto ${asset.name}`}
+                    className="w-full h-auto max-h-96 object-contain rounded-t-lg bg-gray-100"
+                />
+            </div>
+
             <div className="space-y-8">
-                {/* Blok Informasi Utama Aset */}
                 <div className="bg-white rounded-lg shadow overflow-hidden">
                     <div className="p-6 border-b border-gray-200">
-                        <h3 className="text-xl leading-7 font-bold text-gray-900">
-                            {asset.name}
-                        </h3>
-                        <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">
-                            ID Aset: ASSET-{asset.id.toString().padStart(3, '0')}
-                        </p>
+                        <h3 className="text-xl leading-7 font-bold text-gray-900">{asset.name}</h3>
+                        <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">ID Aset: ASSET-{asset.id.toString().padStart(3, '0')}</p>
                     </div>
                     <div className="border-t border-gray-200 px-6 py-2">
                         <dl className="divide-y divide-gray-200">
@@ -95,9 +66,7 @@ export default function Show({ asset }: { asset: Asset }) {
                             <DetailItem label="Keterangan" value={asset.description} />
                         </dl>
                     </div>
-
-                    {/* Blok Informasi Penyusutan */}
-                     <div className="border-t border-gray-200 px-6 py-2 bg-gray-50">
+                    <div className="border-t border-gray-200 px-6 py-2 bg-gray-50">
                         <dl className="divide-y divide-gray-200">
                             <DetailItem label="Harga Beli" value={formatPrice(asset.purchase_price)} />
                             <DetailItem label="Masa Manfaat" value={`${asset.useful_life} Tahun`} />
@@ -108,21 +77,18 @@ export default function Show({ asset }: { asset: Asset }) {
                     </div>
                 </div>
 
-                {/* Blok Baru untuk Riwayat Penyusutan */}
                 <div className="bg-white rounded-lg shadow overflow-hidden">
                     <div className="p-6 border-b border-gray-200">
-                        <h3 className="text-xl leading-6 font-bold text-gray-900">
-                            Riwayat Penyusutan (History Log)
-                        </h3>
+                        <h3 className="text-xl leading-6 font-bold text-gray-900">Riwayat Penyusutan (History Log)</h3>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="min-w-full">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tahun</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nilai Buku Awal</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Penyusutan Tahun Ini</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nilai Buku Akhir</th>
+                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Tahun</th>
+                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Nilai Buku Awal</th>
+                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Penyusutan Tahun Ini</th>
+                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Nilai Buku Akhir</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
