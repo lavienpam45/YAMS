@@ -3,6 +3,7 @@ import { LucideIcon } from 'lucide-react';
 
 export interface Auth {
     user: User;
+    roles: string[]; // <-- TAMBAHKAN PROPERTI INI
 }
 
 export interface BreadcrumbItem {
@@ -29,12 +30,10 @@ export interface SharedData {
     sidebarOpen: boolean;
     [key: string]: unknown;
 
-    // === TAMBAHAN KODE DI SINI ===
     flash?: {
-        // '?' berarti properti ini tidak wajib ada
-        message?: string; // 'message' adalah string dan juga tidak wajib
+        message?: string;
+        error?: string; // Pastikan ini juga ada dari langkah sebelumnya
     };
-    // =============================
 }
 
 export interface User {
@@ -46,5 +45,5 @@ export interface User {
     two_factor_enabled?: boolean;
     created_at: string;
     updated_at: string;
-    [key: string]: unknown; // This allows for additional properties...
+    [key: string]: unknown;
 }

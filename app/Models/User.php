@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany; // <-- TAMBAHKAN IMPORT INI
+use Illuminate\Database\Eloquent\Relations\BelongsToMany; // Pastikan ini ada
 
 class User extends Authenticatable
 {
@@ -16,7 +16,6 @@ class User extends Authenticatable
 
     /**
      * The attributes that are mass assignable.
-     *
      * @var list<string>
      */
     protected $fillable = [
@@ -27,7 +26,6 @@ class User extends Authenticatable
 
     /**
      * The attributes that should be hidden for serialization.
-     *
      * @var list<string>
      */
     protected $hidden = [
@@ -39,7 +37,6 @@ class User extends Authenticatable
 
     /**
      * Get the attributes that should be cast.
-     *
      * @return array<string, string>
      */
     protected function casts(): array
@@ -52,12 +49,20 @@ class User extends Authenticatable
     }
 
     /**
-     * --- BAGIAN BARU YANG DITAMBAHKAN ---
-     * Menentukan relasi many-to-many ke model Role.
-     * Seorang User dapat memiliki banyak Role.
+     * Relasi many-to-many ke model Role.
      */
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class);
+    }
+
+    /**
+     * --- FUNGSI BARU UNTUK MEMERIKSA PERAN ---
+     * Fungsi inilah yang dicari oleh CheckRole.php
+     */
+    public function hasRole(string $roleName): bool
+    {
+        // Memeriksa relasi 'roles' dan mencari apakah ada peran dengan 'name' yang cocok
+        return $this->roles()->where('name', $roleName)->exists();
     }
 }

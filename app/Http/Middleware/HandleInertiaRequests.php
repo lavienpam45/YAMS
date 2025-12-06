@@ -38,12 +38,16 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
+        // Kita gabungkan array yang sudah ada dengan data peran baru
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $request->user(),
+                // --- BAGIAN BARU YANG DITAMBAHKAN ---
+                // 'roles' akan berisi daftar nama peran (e.g., ['superadmin']) dari user yang login.
+                'roles' => $request->user() ? $request->user()->roles->pluck('name') : [],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

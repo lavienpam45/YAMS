@@ -38,36 +38,21 @@ interface UserIndexProps {
 }
 
 export default function Index({ users }: UserIndexProps) {
-    // Mengambil informasi user yang sedang login untuk logika hak akses
+    // Mengambil informasi auth lengkap, termasuk roles
     const { auth } = usePage<SharedData>().props;
+    // Variabel boolean untuk memeriksa apakah user saat ini adalah superadmin
+    const isSuperAdmin = auth.roles.includes('superadmin');
 
-    // State dan Logika untuk Modal Hapus
+    // State dan Logika untuk Modal Hapus (tidak ada perubahan)
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [userToDelete, setUserToDelete] = useState<User | null>(null);
+    const openDeleteModal = (user: User) => { setUserToDelete(user); setIsDeleteModalOpen(true); };
+    const closeDeleteModal = () => { setIsDeleteModalOpen(false); setUserToDelete(null); };
+    const confirmDelete = () => { if (!userToDelete) return; router.delete(route('users.destroy', userToDelete.id), { onSuccess: () => closeDeleteModal(), preserveScroll: true }); };
 
-    const openDeleteModal = (user: User) => {
-        setUserToDelete(user);
-        setIsDeleteModalOpen(true);
-    };
-
-    const closeDeleteModal = () => {
-        setIsDeleteModalOpen(false);
-        setUserToDelete(null);
-    };
-
-    const confirmDelete = () => {
-        if (!userToDelete) return;
-        router.delete(route('users.destroy', userToDelete.id), {
-            onSuccess: () => closeDeleteModal(),
-            preserveScroll: true,
-        });
-    };
-
-    // Fungsi helper untuk styling label peran
+    // Fungsi helper untuk styling label peran (tidak ada perubahan)
     const getRoleLabel = (roles: Role[]) => {
-        if (roles.length === 0) {
-            return <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">No Role</span>;
-        }
+        if (roles.length === 0) return <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">No Role</span>;
         const role = roles[0];
         let color = 'bg-blue-100 text-blue-700';
         if (role.name === 'superadmin') color = 'bg-red-100 text-red-700';
@@ -81,12 +66,13 @@ export default function Index({ users }: UserIndexProps) {
 
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-800">Manajemen Pengguna</h1>
-                <Link
-                    href={route('users.create')}
-                    className="rounded-md bg-indigo-600 px-4 py-2 font-semibold text-white hover:bg-indigo-700"
-                >
-                    Tambah Pengguna
-                </Link>
+
+                {/* --- PERUBAHAN #1: Tampilkan Tombol HANYA jika Super Admin --- */}
+                {isSuperAdmin && (
+                    <Link href={route('users.create')} className="rounded-md bg-indigo-600 px-4 py-2 font-semibold text-white hover:bg-indigo-700">
+                        Tambah Pengguna
+                    </Link>
+                )}
             </div>
 
             <div className="bg-white rounded-lg shadow">
@@ -109,11 +95,9 @@ export default function Index({ users }: UserIndexProps) {
                                     <td className="px-6 py-4 whitespace-nowrap">{getRoleLabel(user.roles)}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div className="flex justify-end gap-x-3">
-                                            {user.roles.find(role => role.name === 'superadmin') ? (
-                                                <span className="text-xs text-gray-400 italic">Tidak ada aksi</span>
-                                            ) : (
+                                            {/* --- PERUBAHAN #2: Logika Aksi Disesuaikan --- */}
+                                            {isSuperAdmin && !user.roles.find(role => role.name === 'superadmin') ? (
                                                 <>
-                                                    {/* --- PERBAIKAN DI SINI: UBAH BUTTON MENJADI LINK --- */}
                                                     <Link href={route('users.edit', user.id)} className="text-gray-400 hover:text-indigo-600" title="Edit">
                                                         <PencilSquareIcon className="w-5 h-5" />
                                                     </Link>
@@ -121,6 +105,10 @@ export default function Index({ users }: UserIndexProps) {
                                                         <TrashIcon className="w-5 h-5" />
                                                     </button>
                                                 </>
+                                            ) : user.roles.find(role => role.name === 'superadmin') ? (
+                                                <span className="text-xs text-gray-400 italic">Tidak ada aksi</span>
+                                            ) : (
+                                                <span className="text-xs text-gray-400 italic">Hanya Admin</span>
                                             )}
                                         </div>
                                     </td>

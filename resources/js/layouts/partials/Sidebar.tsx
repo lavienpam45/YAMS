@@ -1,29 +1,25 @@
 import { Link, usePage } from '@inertiajs/react';
-import {
-    HomeIcon,
-    ArchiveBoxIcon,
-    ChartPieIcon,
-    UsersIcon,
-    Cog6ToothIcon,
-    ArrowLeftOnRectangleIcon
-} from '@heroicons/react/24/outline';
+import { ArrowLeftOnRectangleIcon } from '@heroicons/react/24/outline';
 import { route } from 'ziggy-js';
 import { logout } from '@/routes';
 
-const navLinks = [
-    { name: 'Dashboard', routeName: 'dashboard', check: 'dashboard', icon: HomeIcon },
-    { name: 'Manajemen Aset', routeName: 'assets.index', check: 'Assets', icon: ArchiveBoxIcon },
-    { name: 'Laporan', routeName: 'reports.index', check: 'Reports', icon: ChartPieIcon },
-    // --- PERBAIKI RUTE DI SINI ---
-    { name: 'Manajemen Pengguna', routeName: 'users.index', check: 'Users', icon: UsersIcon },
-    { name: 'Pengaturan', routeName: '#', check: 'Pengaturan', icon: Cog6ToothIcon },
-];
+// Definisikan tipe untuk link yang diterima dari AppLayout
+interface NavLink {
+    name: string;
+    routeName: string;
+    check: string;
+    icon: React.ElementType;
+}
+
+interface SidebarProps {
+    navLinks: NavLink[];
+}
 
 function classNames(...classes: string[]) {
     return classes.filter(Boolean).join(' ');
 }
 
-export default function Sidebar() {
+export default function Sidebar({ navLinks }: SidebarProps) {
     const { component } = usePage();
 
     return (
@@ -35,6 +31,7 @@ export default function Sidebar() {
                 <ul role="list" className="flex flex-1 flex-col gap-y-7">
                     <li>
                         <ul role="list" className="-mx-2 space-y-1 p-4">
+                            {/* Loop melalui navLinks yang sudah difilter */}
                             {navLinks.map((item) => (
                                 <li key={item.name}>
                                     <Link
