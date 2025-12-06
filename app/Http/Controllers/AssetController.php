@@ -112,4 +112,20 @@ class AssetController extends Controller
 
         return redirect()->route('assets.index')->with('message', 'File berhasil diunggah! Data sedang diproses.');
     }
+
+    /**
+     * FUNGSI BARU: Menampilkan halaman detail untuk satu aset.
+     * Laravel akan otomatis menemukan data 'Asset' berdasarkan ID dari URL.
+     */
+    public function show(Asset $asset): Response
+    {
+        // 'load()' adalah cara untuk memuat relasi pada model yang sudah ada.
+        // Kita memuat relasi 'depreciationHistories' yang baru saja kita buat.
+        $asset->load('depreciationHistories');
+
+        // Kirim data aset tunggal ini ke komponen React
+        return Inertia::render('Assets/Show', [
+            'asset' => $asset
+        ]);
+    }
 }

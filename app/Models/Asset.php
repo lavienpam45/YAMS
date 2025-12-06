@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Asset extends Model
 {
@@ -37,6 +38,16 @@ class Asset extends Model
         'accumulated_depreciation',
         'book_value',
     ];
+
+    // --- FUNGSI BARU UNTUK RELASI ---
+    /**
+     * Mendefinisikan bahwa satu Aset memiliki banyak Catatan Riwayat Penyusutan.
+     */
+    public function depreciationHistories(): HasMany
+    {
+        return $this->hasMany(DepreciationHistory::class)->orderBy('year', 'desc');
+    }
+    // --- AKHIR DARI FUNGSI BARU ---
 
     /**
      * LANGKAH PENTING #2: Fungsi Kalkulator Otomatis (Accessors).

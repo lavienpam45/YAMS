@@ -4,7 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { route } from 'ziggy-js';
 import Pagination from '@/components/Pagination';
 import { DocumentArrowDownIcon } from '@heroicons/react/24/outline';
+import { useDebounce } from 'use-debounce'; // Kita akan manfaatkan debounce
 
+// Tipe Data (tidak berubah)
 interface Asset { id: number; asset_code: string | null; name: string; type: string; received_date: string; room_name: string; book_value: number; }
 interface PaginatorLink { url: string | null; label: string; active: boolean; }
 interface ReportProps {
@@ -15,35 +17,36 @@ interface ReportProps {
 }
 
 export default function Index({ assets, filters, categories, summary }: ReportProps) {
-    const [filterValues, setFilterValues] = useState({
-        category: filters.category || 'Semua',
-        sort_by: filters.sort_by || 'id',
-    });
+    // --- PERBAIKAN LOGIKA FILTER DAN SORTING ---
+    const [category, setCategory] = useState(filters.category || 'Semua');
+    const [sortBy, setSortBy] = useState(filters.sort_by || 'id');
 
-    // --- PERBAIKAN LOGIKA 'useEffect' ---
+    // Gunakan useDebounce untuk nilai-nilai yang akan memicu pencarian ulang
+    const [debouncedCategory] = useDebounce(category, 300);
+    const [debouncedSortBy] = useDebounce(sortBy, 300);
+
+    const isInitialMount = React.useRef(true);
+
     useEffect(() => {
-        // 1. Ambil nilai filter saat ini
-        const { category, sort_by } = filterValues;
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
 
-        // 2. Buat objek query parameter yang akan dikirim
         const queryParams: Record<string, string> = {};
+        if (debouncedCategory !== 'Semua') queryParams.category = debouncedCategory;
+        if (debouncedSortBy !== 'id') queryParams.sort_by = debouncedSortBy;
 
-        // 3. Hanya tambahkan parameter jika nilainya bukan default
-        if (category !== 'Semua') {
-            queryParams.category = category;
-        }
-        if (sort_by !== 'id') {
-            queryParams.sort_by = sort_by;
-        }
-
+        // Kirim request ke server, Inertia akan otomatis menambahkan parameter 'page' jika ada
         router.get(route('reports.index'), queryParams, {
             preserveState: true,
-            replace: true,
             preserveScroll: true,
+            replace: true,
         });
-    }, [filterValues]);
-    // --- AKHIR DARI PERBAIKAN ---
+    }, [debouncedCategory, debouncedSortBy]);
+    // --- AKHIR PERBAIKAN ---
 
+    // Fungsi format harga (tidak berubah)
     const formatPrice = (value: number) => { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value); };
 
     return (
@@ -60,14 +63,14 @@ export default function Index({ assets, filters, categories, summary }: ReportPr
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
                     <div className="lg:col-span-2">
                         <label className="block text-sm font-medium text-gray-700">Filter Tipe</label>
-                        <select value={filterValues.category} onChange={(e) => setFilterValues(v => ({...v, category: e.target.value}))} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <select value={category} onChange={(e) => setCategory(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                             <option value="Semua">Semua</option>
                             {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                         </select>
                     </div>
                     <div className="lg:col-span-2">
                         <label className="block text-sm font-medium text-gray-700">Urutkan</label>
-                        <select value={filterValues.sort_by} onChange={(e) => setFilterValues(v => ({...v, sort_by: e.target.value}))} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                             <option value="id">Default (ID)</option>
                             <option value="received_date">Tahun Pembelian</option>
                             <option value="type">Kategori</option>
@@ -75,12 +78,12 @@ export default function Index({ assets, filters, categories, summary }: ReportPr
                         </select>
                     </div>
                     <div className="lg:col-span-2 flex justify-end space-x-2">
-                        <a href={route('reports.export.excel', filterValues)} className="inline-flex items-center justify-center gap-x-2 rounded-md bg-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-500">
+                         <a href={route('reports.export.excel', { category, sort_by: sortBy })} className="inline-flex items-center justify-center gap-x-2 rounded-md bg-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-500">
                              <DocumentArrowDownIcon className="h-5 w-5" /> Export Excel
-                        </a>
-                        <a href={route('reports.export.pdf', filterValues)} className="inline-flex items-center justify-center gap-x-2 rounded-md bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
+                         </a>
+                         <a href={route('reports.export.pdf', { category, sort_by: sortBy })} className="inline-flex items-center justify-center gap-x-2 rounded-md bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
                              <DocumentArrowDownIcon className="h-5 w-5" /> Export PDF
-                        </a>
+                         </a>
                     </div>
                 </div>
 

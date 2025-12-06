@@ -26,6 +26,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('assets/{asset}', [AssetController::class, 'update'])->name('assets.update');
     Route::delete('assets/{asset}', [AssetController::class, 'destroy'])->name('assets.destroy');
     Route::post('assets/import', [AssetController::class, 'import'])->name('assets.import');
+    Route::get('assets/{asset}', [AssetController::class, 'show'])->name('assets.show');
 
     // Report Routes
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
