@@ -20,26 +20,16 @@ export default function AppLayout({ children }: PropsWithChildren) {
         }
     }, [flash]);
 
-    // Definisikan semua kemungkinan link menu
+    // Definisikan semua kemungkinan link menu beserta peran yang diizinkan
     const allNavLinks = [
-        // Semua peran bisa melihat Dashboard
         { name: 'Dashboard', routeName: 'dashboard', check: 'dashboard', icon: HomeIcon, allowed: ['superadmin', 'admin', 'user'] },
-
-        // Superadmin dan admin bisa melihat Manajemen Aset
         { name: 'Manajemen Aset', routeName: 'assets.index', check: 'Assets', icon: ArchiveBoxIcon, allowed: ['superadmin', 'admin'] },
-
-        // Superadmin dan admin bisa melihat Laporan
-        { name: 'Laporan', routeName: 'reports.index', check: 'Reports', icon: ChartPieIcon, allowed: ['superadmin', 'admin'] },
-
-        // HANYA superadmin yang bisa melihat Manajemen Pengguna
+        { name: 'Laporan', routeName: 'reports.index', check: 'Reports', icon: ChartPieIcon, allowed: ['superadmin', 'admin'] }, // Dihapus 'user'
         { name: 'Manajemen Pengguna', routeName: 'users.index', check: 'Users', icon: UsersIcon, allowed: ['superadmin'] },
-
-        // === PERBAIKAN DI SINI: HAPUS 'admin' dari 'allowed' ===
-        // HANYA superadmin yang bisa melihat Pengaturan
-        { name: 'Pengaturan', routeName: '#', check: 'Pengaturan', icon: Cog6ToothIcon, allowed: ['superadmin'] },
+        { name: 'Pengaturan', routeName: 'settings.show', check: 'settings', icon: Cog6ToothIcon, allowed: ['superadmin'] },
     ];
 
-    // Logika filter menu
+    // Logika untuk memfilter menu berdasarkan peran pengguna yang login
     const filteredNavLinks = allNavLinks.filter(link =>
         link.allowed.some(allowedRole => roles.includes(allowedRole))
     );
