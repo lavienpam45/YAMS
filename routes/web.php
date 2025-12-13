@@ -8,6 +8,7 @@ use App\Http\Controllers\SettingsController; // Pastikan ini ada jika Anda mengg
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
+use App\Http\Controllers\FormulaController;
 
 Route::get('/', function () {
     return Inertia::render('welcome', [
@@ -34,6 +35,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('reports/export/excel', [ReportController::class, 'exportExcel'])->name('reports.export.excel');
         Route::get('reports/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.export.pdf');
+
+        Route::get('formulas', [FormulaController::class, 'index'])->name('formulas.index');
+        Route::post('formulas', [FormulaController::class, 'store'])->name('formulas.store');
+        Route::post('formulas/{formula}/activate', [FormulaController::class, 'activate'])->name('formulas.activate');
+        Route::delete('formulas/{formula}', [FormulaController::class, 'destroy'])->name('formulas.destroy');
+
     });
 
     Route::middleware('role:superadmin')->group(function () {
