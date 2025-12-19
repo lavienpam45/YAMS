@@ -72,7 +72,7 @@ function StatCard({
     value: string;
 }) {
     return (
-        <div className="rounded-lg bg-white p-6 shadow">
+        <div className="rounded-lg bg-white p-6 shadow border border-gray-100">
             <div className="flex items-start justify-between">
                 <div className="flex flex-col space-y-2">
                     <span className="text-gray-500">{title}</span>
@@ -177,25 +177,25 @@ export default function Dashboard({
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <StatCard
                     icon={
-                        <BuildingOfficeIcon className="h-8 w-8 text-blue-500" />
+                        <BuildingOfficeIcon className="h-8 w-8 text-[#7ACAB0]" />
                     }
                     title="Total Aset"
                     value={summaryData.total_assets.toString()}
                 />
                 <StatCard
-                    icon={<BanknotesIcon className="h-8 w-8 text-green-500" />}
+                    icon={<BanknotesIcon className="h-8 w-8 text-[#7ACAB0]" />}
                     title="Total Nilai Aset"
                     value={formatCardValue(summaryData.total_purchase_value)}
                 />
                 <StatCard
                     icon={
-                        <CurrencyDollarIcon className="h-8 w-8 text-yellow-500" />
+                        <CurrencyDollarIcon className="h-8 w-8 text-[#5FA18C]" />
                     }
                     title="Total Penyusutan"
                     value={formatCardValue(summaryData.total_depreciation)}
                 />
                 <StatCard
-                    icon={<CreditCardIcon className="h-8 w-8 text-red-500" />}
+                    icon={<CreditCardIcon className="h-8 w-8 text-[#3D7F6A]" />}
                     title="Nilai Buku Terkini"
                     value={formatCardValue(summaryData.current_book_value)}
                 />

@@ -31,7 +31,7 @@ export default function Welcome({ auth }: PageProps) {
                             </div>
 
                             <h1 className="mx-auto max-w-4xl text-5xl font-extrabold tracking-tight text-foreground sm:text-6xl md:text-7xl">
-                                Kelola Aset Kampus dengan <span className="text-primary bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">Cerdas & Akurat</span>
+                                Kelola Aset Kampus dengan <span className="text-primary bg-clip-text text-transparent bg-gradient-to-r from-[#7ACAB0] to-[#5FA18C]">Cerdas & Akurat</span>
                             </h1>
 
                             <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground sm:text-xl">
@@ -75,7 +75,7 @@ export default function Welcome({ auth }: PageProps) {
                                 {/* Kartu 1: Penyusutan */}
                                 <Card className="border-none shadow-md transition-all hover:-translate-y-1 hover:shadow-xl">
                                     <CardHeader>
-                                        <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                                        <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-[#e6f4ef] text-[#3d7f6a] dark:bg-[#1f2d2a] dark:text-[#9cdac2]">
                                             <Calculator className="h-6 w-6" />
                                         </div>
                                         <CardTitle>Penyusutan Otomatis</CardTitle>
@@ -90,7 +90,7 @@ export default function Welcome({ auth }: PageProps) {
                                 {/* Kartu 2: Pelacakan */}
                                 <Card className="border-none shadow-md transition-all hover:-translate-y-1 hover:shadow-xl">
                                     <CardHeader>
-                                        <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
+                                        <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-[#d7efe6] text-[#3d7f6a] dark:bg-[#1f2d2a] dark:text-[#9cdac2]">
                                             <QrCode className="h-6 w-6" />
                                         </div>
                                         <CardTitle>Pelacakan Lokasi</CardTitle>
@@ -105,7 +105,7 @@ export default function Welcome({ auth }: PageProps) {
                                 {/* Kartu 3: Laporan */}
                                 <Card className="border-none shadow-md transition-all hover:-translate-y-1 hover:shadow-xl">
                                     <CardHeader>
-                                        <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
+                                        <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-[#e6f4ef] text-[#3d7f6a] dark:bg-[#1f2d2a] dark:text-[#9cdac2]">
                                             <BarChart3 className="h-6 w-6" />
                                         </div>
                                         <CardTitle>Laporan Akurat</CardTitle>
@@ -120,7 +120,7 @@ export default function Welcome({ auth }: PageProps) {
                                 {/* Kartu 4: Keamanan */}
                                 <Card className="border-none shadow-md transition-all hover:-translate-y-1 hover:shadow-xl">
                                     <CardHeader>
-                                        <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400">
+                                        <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-[#d7efe6] text-[#3d7f6a] dark:bg-[#1f2d2a] dark:text-[#9cdac2]">
                                             <ShieldCheck className="h-6 w-6" />
                                         </div>
                                         <CardTitle>Akses Terkontrol</CardTitle>

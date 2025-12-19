@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import Pagination from '@/components/Pagination';
 import { Head, Link, router, useForm } from '@inertiajs/react';
@@ -60,6 +60,7 @@ export default function Index({ assets, filters }: IndexProps) {
     const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null);
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
+    const hasMountedRef = useRef(false);
 
     const { data, setData, post, processing, errors } = useForm<{ file: File | null }>({
         file: null,
@@ -104,6 +105,12 @@ export default function Index({ assets, filters }: IndexProps) {
     }
 
     useEffect(() => {
+        // Hindari menimpa query ?page saat first render
+        if (!hasMountedRef.current) {
+            hasMountedRef.current = true;
+            return;
+        }
+
         // Objek untuk menampung parameter query
         const queryParams: Record<string, string> = {};
 
@@ -112,8 +119,7 @@ export default function Index({ assets, filters }: IndexProps) {
             queryParams.search = debouncedSearchTerm;
         }
 
-        // Lakukan request. Inertia akan menangani parameter 'page' secara otomatis
-        // jika kita tidak menyentuhnya. Jika queryParams kosong, ia akan ke URL dasar.
+        // Lakukan request hanya ketika pencarian berubah
         router.get(absRoute('assets.index'), queryParams, {
             preserveState: true,
             replace: true,
@@ -128,7 +134,7 @@ export default function Index({ assets, filters }: IndexProps) {
                 <h1 className="text-2xl font-bold text-gray-800">Manajemen Aset</h1>
                 <Link
                     href={absRoute('assets.create')}
-                    className="rounded-md bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700"
+                    className="rounded-md bg-[#7ACAB0] px-4 py-2 font-semibold text-white hover:bg-[#5FA18C]"
                 >
                     Tambah Aset
                 </Link>
@@ -142,7 +148,7 @@ export default function Index({ assets, filters }: IndexProps) {
                             onChange={(e) => setData('file', e.target.files ? e.target.files[0] : null)}
                             className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />
-                        <button type="submit" disabled={processing || !data.file} className="inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50">
+                        <button type="submit" disabled={processing || !data.file} className="inline-flex items-center gap-x-1.5 rounded-md bg-[#7ACAB0] px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#5FA18C] disabled:opacity-50">
                             <DocumentArrowUpIcon className="-ml-0.5 h-5 w-5" />
                             Import
                         </button>
@@ -158,7 +164,7 @@ export default function Index({ assets, filters }: IndexProps) {
                     </div>
                     <input
                         type="search"
-                        className="block w-full rounded-md border-0 py-2 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
+                        className="block w-full rounded-md border-0 py-2 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#7ACAB0] sm:text-sm"
                         placeholder="Cari berdasarkan nama barang, kode, atau serial number..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -221,7 +227,7 @@ export default function Index({ assets, filters }: IndexProps) {
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.inventory_status}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex justify-end gap-x-3">
-                                                <Link href={absRoute('assets.edit', asset.id)} onClick={(e) => e.stopPropagation()} className="text-gray-400 hover:text-indigo-600" title="Edit"><PencilSquareIcon className="w-5 h-5" /></Link>
+                                                <Link href={absRoute('assets.edit', asset.id)} onClick={(e) => e.stopPropagation()} className="text-gray-400 hover:text-[#7ACAB0]" title="Edit"><PencilSquareIcon className="w-5 h-5" /></Link>
                                                 <button onClick={(e) => openDeleteModal(e, asset)} className="text-gray-400 hover:text-red-600" title="Hapus"><TrashIcon className="w-5 h-5" /></button>
                                             </div>
                                         </td>

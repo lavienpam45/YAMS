@@ -4,20 +4,38 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Role; // <-- Import Role
+use App\Models\ActivityLog; // <-- Import ActivityLog
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash; // <-- Import Hash
 use Illuminate\Validation\Rule; // <-- Import Rule
 use Illuminate\Validation\Rules; // <-- Import Rules
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Http\RedirectResponse; // <-- Import RedirectResponse
+use Illuminate\Http\RedirectResponse;
 
 class UserController extends Controller
 {
     public function index(): Response
     {
+        $users = User::with('roles')->paginate(10);
+
+        $activityLogs = [];
+        $user = Auth::user();
+        if ($user instanceof User) {
+            // Check if user is superadmin by querying roles
+            $userRoles = $user->roles->pluck('name')->toArray();
+            if (in_array('superadmin', $userRoles)) {
+                $activityLogs = ActivityLog::with(['actor:id,name,email', 'targetUser:id,name,email'])
+                    ->latest()
+                    ->take(30)
+                    ->get();
+            }
+        }
+
         return Inertia::render('Users/Index', [
-            'users' => User::with('roles')->paginate(10),
+            'users' => $users,
+            'activityLogs' => $activityLogs,
         ]);
     }
 
@@ -54,6 +72,10 @@ class UserController extends Controller
 
         // Lampirkan peran yang dipilih ke pengguna baru
         $user->roles()->attach($request->role_id);
+
+        $this->logActivity('user.created', $user, [
+            'role' => Role::find($request->role_id)?->name,
+        ]);
 
         return redirect()->route('users.index')->with('message', 'Pengguna baru berhasil ditambahkan.');
     }
@@ -103,6 +125,11 @@ class UserController extends Controller
         // 'sync' akan menghapus semua peran lama dan menerapkan yang baru
         $user->roles()->sync($request->role_id);
 
+        $this->logActivity('user.updated', $user, [
+            'role' => Role::find($request->role_id)?->name,
+            'changed' => collect($user->getChanges())->only(['name', 'email'])->all(),
+        ]);
+
         return redirect()->route('users.index')->with('message', 'Pengguna berhasil diperbarui.');
     }
 
@@ -116,8 +143,28 @@ class UserController extends Controller
             return redirect()->route('users.index')->with('error', 'Super Administrator tidak dapat dihapus.');
         }
 
+        $targetName = $user->name;
+        $targetEmail = $user->email;
+
         $user->delete();
 
+        $this->logActivity('user.deleted', $user, [
+            'email' => $targetEmail,
+            'name' => $targetName,
+        ]);
+
         return redirect()->route('users.index')->with('message', 'Pengguna berhasil dihapus.');
+    }
+
+    private function logActivity(string $action, User $target, array $metadata = []): void
+    {
+        ActivityLog::create([
+            'actor_id' => Auth::id(),
+            'action' => $action,
+            'target_type' => 'user',
+            'target_id' => $target->id,
+            'target_name' => $target->name,
+            'metadata' => $metadata,
+        ]);
     }
 }

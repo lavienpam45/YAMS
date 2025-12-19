@@ -59,18 +59,18 @@ export default function Index({ assets, filters, categories, summary }: ReportPr
                 <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200"><div className="text-sm text-gray-500">Total Nilai Buku</div><div className="text-2xl font-bold text-gray-800 mt-1">{formatPrice(summary.total_book_value)}</div></div>
             </div>
 
-            <div className="p-6 bg-white rounded-lg shadow">
+            <div className="p-6 bg-white rounded-lg shadow border border-gray-100">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
                     <div className="lg:col-span-2">
                         <label className="block text-sm font-medium text-gray-700">Filter Tipe</label>
-                        <select value={category} onChange={(e) => setCategory(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <select value={category} onChange={(e) => setCategory(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#7ACAB0] focus:ring-[#7ACAB0] sm:text-sm">
                             <option value="Semua">Semua</option>
                             {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                         </select>
                     </div>
                     <div className="lg:col-span-2">
                         <label className="block text-sm font-medium text-gray-700">Urutkan</label>
-                        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#7ACAB0] focus:ring-[#7ACAB0] sm:text-sm">
                             <option value="id">Default (ID)</option>
                             <option value="received_date">Tahun Pembelian</option>
                             <option value="type">Kategori</option>
@@ -78,7 +78,7 @@ export default function Index({ assets, filters, categories, summary }: ReportPr
                         </select>
                     </div>
                     <div className="lg:col-span-2 flex justify-end space-x-2">
-                         <a href={route('reports.export.excel', { category, sort_by: sortBy })} className="inline-flex items-center justify-center gap-x-2 rounded-md bg-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-500">
+                         <a href={route('reports.export.excel', { category, sort_by: sortBy })} className="inline-flex items-center justify-center gap-x-2 rounded-md bg-[#7ACAB0] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#5FA18C]">
                              <DocumentArrowDownIcon className="h-5 w-5" /> Export Excel
                          </a>
                          <a href={route('reports.export.pdf', { category, sort_by: sortBy })} className="inline-flex items-center justify-center gap-x-2 rounded-md bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500">

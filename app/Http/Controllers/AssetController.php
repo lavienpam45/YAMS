@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Imports\AssetsImport;
 use App\Models\Asset;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
@@ -68,7 +70,11 @@ class AssetController extends Controller
             $validatedData['photo'] = $path;
         }
 
-        Asset::create($validatedData);
+        $asset = Asset::create($validatedData);
+
+        $this->logActivity('asset.created', $asset->id, $asset->name, $asset->asset_code, $asset->user_assigned, [
+            'fields' => collect($validatedData)->all(),
+        ]);
 
         return redirect()->route('assets.index')->with('message', 'Aset berhasil ditambahkan.');
     }
@@ -101,6 +107,8 @@ class AssetController extends Controller
             'photo' => 'nullable|image|max:2048', // Validasi foto baru (jika ada)
         ]);
 
+        $oldValues = $asset->only(array_keys($validatedData));
+
         if ($request->hasFile('photo')) {
             // Hapus foto lama jika ada
             if ($asset->photo) {
@@ -113,6 +121,20 @@ class AssetController extends Controller
 
         $asset->update($validatedData);
 
+        $changes = [];
+        foreach (array_keys($validatedData) as $field) {
+            if ($oldValues[$field] !== $validatedData[$field]) {
+                $changes[$field] = [
+                    'old' => $oldValues[$field],
+                    'new' => $validatedData[$field],
+                ];
+            }
+        }
+
+        $this->logActivity('asset.updated', $asset->id, $asset->name, $asset->asset_code, $asset->user_assigned, [
+            'changes' => $this->formatChangesReadable($changes),
+        ]);
+
         return redirect()->route('assets.index')->with('message', 'Aset berhasil diperbarui.');
     }
 
@@ -123,7 +145,14 @@ class AssetController extends Controller
             Storage::disk('public')->delete($asset->photo);
         }
 
+        $targetId = $asset->id;
+        $targetName = $asset->name;
+        $targetCode = $asset->asset_code;
+        $targetUser = $asset->user_assigned;
+
         $asset->delete();
+
+        $this->logActivity('asset.deleted', $targetId, $targetName, $targetCode, $targetUser, []);
         return redirect()->route('assets.index')->with('message', 'Aset berhasil dihapus.');
     }
 
@@ -144,5 +173,72 @@ class AssetController extends Controller
         return Inertia::render('Assets/Show', [
             'asset' => $asset
         ]);
+    }
+
+    private function logActivity(string $action, ?int $targetId, ?string $targetName, ?string $assetCode, ?string $assignedTo, array $metadata = []): void
+    {
+        ActivityLog::create([
+            'actor_id' => Auth::id(),
+            'action' => $action,
+            'target_type' => 'asset',
+            'target_id' => $targetId,
+            'target_name' => $targetName,
+            'metadata' => array_merge($metadata, [
+                'asset_code' => $assetCode,
+                'assigned_to' => $assignedTo,
+            ]),
+        ]);
+    }
+
+    private function formatChangesReadable(array $changes): array
+    {
+        $fieldLabels = [
+            'room_name' => 'nama ruang',
+            'name' => 'nama aset',
+            'asset_code' => 'kode aset',
+            'purchase_price' => 'harga aset',
+            'quantity' => 'jumlah',
+            'status' => 'kondisi',
+            'type' => 'tipe',
+            'brand' => 'merek',
+            'serial_number' => 'nomor seri',
+            'unit_code' => 'kode satuan',
+            'received_date' => 'tanggal terima',
+            'useful_life' => 'umur manfaat',
+            'salvage_value' => 'nilai sisa',
+            'description' => 'deskripsi',
+            'user_assigned' => 'pengguna',
+            'inventory_status' => 'status inventaris',
+            'photo' => 'foto',
+        ];
+
+        // Date fields yang hanya perlu menampilkan tanggal saja (tanpa waktu)
+        $dateFields = ['received_date'];
+
+        $result = [];
+        foreach ($changes as $field => $data) {
+            $old = $data['old'];
+            $new = $data['new'];
+
+            // Skip jika nilai tidak benar-benar berubah (null handling)
+            if ($old === $new || (is_null($old) && is_null($new))) {
+                continue;
+            }
+
+            // Format tanggal hanya menampilkan bagian tanggal (tanpa waktu)
+            if (in_array($field, $dateFields)) {
+                if ($old) {
+                    $old = \Carbon\Carbon::parse($old)->format('d-m-Y');
+                }
+                if ($new) {
+                    $new = \Carbon\Carbon::parse($new)->format('d-m-Y');
+                }
+            }
+
+            $label = $fieldLabels[$field] ?? $field;
+            $result[$field] = "Merubah {$label} dari {$old} menjadi {$new}";
+        }
+
+        return $result;
     }
 }

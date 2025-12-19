@@ -43,12 +43,12 @@ export default function FormulaIndex({ formulas, variables }: FormulaPageProps) 
             .replaceAll('{salvage}', String(calcValues.salvage))
             .replaceAll('{life}', String(calcValues.life))
             .replaceAll('{age}', String(calcValues.age));
-        
+
         try {
             // Catatan: eval() berisiko, pastikan input tervalidasi di backend juga.
             // Gunakan Function constructor sebagai alternatif sedikit lebih aman atau library mathjs.
             // @ts-ignore: Mengabaikan warning eval untuk simulasi UI
-            const result = eval(parsed); 
+            const result = eval(parsed);
             setCalcResult(result);
         } catch (e) {
             setCalcResult('Error dalam rumus');
@@ -59,9 +59,9 @@ export default function FormulaIndex({ formulas, variables }: FormulaPageProps) 
         // 4. Perbaiki Props AppLayout: Hapus 'breadcrumbs', pastikan ada 'title'
         <AppLayout title="Manajemen Rumus">
             <Head title="Manajemen Rumus" />
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
+
                 {/* BAGIAN KIRI: DAFTAR RUMUS */}
                 <div className="space-y-6">
                     <Card>
@@ -71,7 +71,7 @@ export default function FormulaIndex({ formulas, variables }: FormulaPageProps) 
                         <CardContent className="space-y-4">
                             {/* 5. Berikan tipe (formula: Formula) pada map */}
                             {formulas.map((formula: Formula) => (
-                                <div key={formula.id} className={`p-4 border rounded-lg flex justify-between items-center ${formula.is_active ? 'border-blue-500 bg-blue-50' : ''}`}>
+                                <div key={formula.id} className={`p-4 border rounded-lg flex justify-between items-center ${formula.is_active ? 'border-[#7ACAB0] bg-[#e6f4ef]' : ''}`}>
                                     <div>
                                         <div className="flex items-center gap-2">
                                             <h3 className="font-bold">{formula.name}</h3>
@@ -107,10 +107,10 @@ export default function FormulaIndex({ formulas, variables }: FormulaPageProps) 
                                     </div>
                                     <div>
                                         <Label>Ekspresi Matematika</Label>
-                                        <Input 
-                                            value={data.expression} 
-                                            onChange={e => { setData('expression', e.target.value); setPreviewExpression(e.target.value); }} 
-                                            placeholder="Contoh: ({price} - {salvage}) / {life}" 
+                                        <Input
+                                            value={data.expression}
+                                            onChange={e => { setData('expression', e.target.value); setPreviewExpression(e.target.value); }}
+                                            placeholder="Contoh: ({price} - {salvage}) / {life}"
                                         />
                                         <p className="text-xs text-gray-500 mt-1">
                                             Gunakan variabel: {Object.keys(variables).join(', ')}
@@ -125,8 +125,8 @@ export default function FormulaIndex({ formulas, variables }: FormulaPageProps) 
 
                 {/* BAGIAN KANAN: KALKULATOR / SIMULASI */}
                 <div>
-                    <Card className="sticky top-6 border-2 border-indigo-100">
-                        <CardHeader className="bg-indigo-50/50">
+                    <Card className="sticky top-6 border-2 border-[#7ACAB0]/40">
+                        <CardHeader className="bg-[#e6f4ef]">
                             <CardTitle className="flex items-center gap-2">
                                 🧮 Kalkulator Simulasi
                             </CardTitle>
@@ -135,54 +135,54 @@ export default function FormulaIndex({ formulas, variables }: FormulaPageProps) 
                             <p className="text-sm text-gray-600 mb-4">
                                 Masukkan angka di bawah ini untuk menguji rumus.
                             </p>
-                            
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <Label>Harga Beli (Price)</Label>
                                     {/* 6. Perbaiki Type Mismatch pada Input (String -> Number) */}
-                                    <Input 
-                                        type="number" 
-                                        value={calcValues.price} 
-                                        onChange={e => setCalcValues({...calcValues, price: Number(e.target.value)})} 
+                                    <Input
+                                        type="number"
+                                        value={calcValues.price}
+                                        onChange={e => setCalcValues({...calcValues, price: Number(e.target.value)})}
                                     />
                                 </div>
                                 <div>
                                     <Label>Nilai Sisa (Salvage)</Label>
-                                    <Input 
-                                        type="number" 
-                                        value={calcValues.salvage} 
-                                        onChange={e => setCalcValues({...calcValues, salvage: Number(e.target.value)})} 
+                                    <Input
+                                        type="number"
+                                        value={calcValues.salvage}
+                                        onChange={e => setCalcValues({...calcValues, salvage: Number(e.target.value)})}
                                     />
                                 </div>
                                 <div>
                                     <Label>Umur Manfaat (Life)</Label>
-                                    <Input 
-                                        type="number" 
-                                        value={calcValues.life} 
-                                        onChange={e => setCalcValues({...calcValues, life: Number(e.target.value)})} 
+                                    <Input
+                                        type="number"
+                                        value={calcValues.life}
+                                        onChange={e => setCalcValues({...calcValues, life: Number(e.target.value)})}
                                     />
                                 </div>
                                 <div>
                                     <Label>Umur Aset (Age)</Label>
-                                    <Input 
-                                        type="number" 
-                                        value={calcValues.age} 
-                                        onChange={e => setCalcValues({...calcValues, age: Number(e.target.value)})} 
+                                    <Input
+                                        type="number"
+                                        value={calcValues.age}
+                                        onChange={e => setCalcValues({...calcValues, age: Number(e.target.value)})}
                                     />
                                 </div>
                             </div>
 
                             <div className="mt-6 p-4 bg-gray-100 rounded-lg text-center">
                                 <Label className="block text-gray-500 mb-1">Hasil Perhitungan (Depresiasi Tahunan)</Label>
-                                <div className="text-3xl font-bold text-indigo-600">
-                                    {typeof calcResult === 'number' 
-                                        ? `Rp ${calcResult.toLocaleString('id-ID')}` 
+                                <div className="text-3xl font-bold text-[#7ACAB0]">
+                                    {typeof calcResult === 'number'
+                                        ? `Rp ${calcResult.toLocaleString('id-ID')}`
                                         : calcResult}
                                 </div>
                             </div>
 
-                            <Button 
-                                className="w-full mt-2" 
+                            <Button
+                                className="w-full mt-2"
                                 variant="secondary"
                                 // 7. Perbaiki pencarian rumus aktif dengan tipe data yang benar
                                 onClick={() => calculatePreview(data.expression || (formulas.find((f: Formula) => f.is_active)?.expression || ''))}
