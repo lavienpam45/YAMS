@@ -72,7 +72,7 @@ function StatCard({
     value: string;
 }) {
     return (
-        <div className="rounded-lg bg-white p-6 shadow border border-gray-100">
+        <div className="rounded-lg bg-white p-6 shadow border" style={{ borderColor: 'rgba(12, 126, 70, 0.15)' }}>
             <div className="flex items-start justify-between">
                 <div className="flex flex-col space-y-2">
                     <span className="text-gray-500">{title}</span>
@@ -80,7 +80,7 @@ function StatCard({
                         {value}
                     </span>
                 </div>
-                <div className="rounded-full bg-gray-100 p-3">{icon}</div>
+                <div className="rounded-full p-3" style={{ backgroundColor: 'rgba(12, 126, 70, 0.1)' }}>{icon}</div>
             </div>
         </div>
     );

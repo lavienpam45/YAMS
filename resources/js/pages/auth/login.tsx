@@ -63,7 +63,12 @@ export default function Login({ status }: { status?: string }) {
             </div>
 
             {/* BAGIAN KANAN (Form Login) */}
-            <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background">
+            <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background relative" style={{
+                backgroundImage: `
+                    radial-gradient(circle at 20% 50%, rgba(16, 185, 129, 0.10) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 80%, rgba(12, 126, 70, 0.08) 0%, transparent 50%)
+                `
+            }}>
                 <Head title="Masuk" />
 
                 {/* Tombol Kembali Mobile */}

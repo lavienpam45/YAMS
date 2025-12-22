@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
-import { Head, usePage, Link } from '@inertiajs/react';
 import Sidebar from '@/layouts/partials/Sidebar';
 import { type SharedData } from '@/types';
+import { ArchiveBoxIcon, ChartPieIcon, ChevronDownIcon, Cog6ToothIcon, HomeIcon, UsersIcon } from '@heroicons/react/24/outline';
+import { Head, Link, usePage } from '@inertiajs/react';
+import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import React from 'react';
-import { HomeIcon, ArchiveBoxIcon, ChartPieIcon, UsersIcon, Cog6ToothIcon, Bars3Icon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { route } from 'ziggy-js';
 
 // --- PERBAIKAN UTAMA DI SINI ---
@@ -48,12 +47,21 @@ export default function AppLayout({ children, title }: AppLayoutProps) {
     const headerContentPadding = sidebarOpen ? 'pl-72' : 'pl-6';
 
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen" style={{
+            backgroundColor: '#f9fafb',
+            backgroundImage: `
+                radial-gradient(circle at 20% 50%, rgba(16, 185, 129, 0.10) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(12, 126, 70, 0.08) 0%, transparent 50%)
+            `
+        }}>
             <Head title={title} />
 
             <Sidebar navLinks={filteredNavLinks} isOpen={sidebarOpen} onToggle={() => setSidebarOpen((prev) => !prev)} />
 
-            <header className="fixed top-0 left-0 right-0 z-10 bg-white shadow-sm border-b">
+            <header className="fixed top-0 left-0 right-0 z-10 bg-white shadow-sm" style={{
+                borderBottom: `2px solid rgba(12, 126, 70, 0.2)`,
+                backgroundImage: `radial-gradient(circle at 50% 0%, rgba(12, 126, 70, 0.06) 0%, transparent 60%)`
+            }}>
                 <div className={`flex items-center justify-between gap-3 px-6 py-4 transition-all duration-200 ${headerContentPadding}`}>
                     <h1 className="text-xl font-semibold text-gray-800">{title}</h1>
 
@@ -66,7 +74,8 @@ export default function AppLayout({ children, title }: AppLayoutProps) {
                             <img
                                 src={auth.user.avatar || '/images/default-avatar.png'}
                                 alt={auth.user.name}
-                                className="h-9 w-9 rounded-full object-cover border-2 border-[#7ACAB0]"
+                                className="h-9 w-9 rounded-full object-cover border-2"
+                                style={{ borderColor: '#0C7E46' }}
                             />
                             <span className="text-sm font-medium text-gray-700">{auth.user.name}</span>
                             <ChevronDownIcon className="h-4 w-4 text-gray-400" />
@@ -76,8 +85,9 @@ export default function AppLayout({ children, title }: AppLayoutProps) {
                             <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
                                 <Link
                                     href={route('settings.show')}
-                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
                                     onClick={() => setProfileDropdownOpen(false)}
+                                    style={{ color: '#0C7E46' }}
                                 >
                                     Pengaturan Profil
                                 </Link>
@@ -85,7 +95,8 @@ export default function AppLayout({ children, title }: AppLayoutProps) {
                                     href={route('logout')}
                                     method="post"
                                     as="button"
-                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
+                                    style={{ color: '#0C7E46' }}
                                 >
                                     Keluar
                                 </Link>
@@ -97,7 +108,9 @@ export default function AppLayout({ children, title }: AppLayoutProps) {
 
             <div className={mainPaddingClass + ' transition-all duration-200 pt-20'}>
                 <main>
-                    <div className="p-8">
+                    <div className="p-8" style={{
+                        backgroundImage: `radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 50%)`
+                    }}>
                        {children}
                     </div>
                 </main>
