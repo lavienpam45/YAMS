@@ -7,13 +7,15 @@ use App\Models\User;
 use App\Models\Asset;
 use App\Models\Role;
 use App\Models\DepreciationFormula;
+use Illuminate\Support\Facades\Schema;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
         $this->call([
-            RoleSeeder::class
+            RoleSeeder::class,
+            AppreciationFormulaSeeder::class,
         ]);
 
         // Buat atau temukan user Super Admin
@@ -35,10 +37,14 @@ class DatabaseSeeder extends Seeder
             $superAdminUser->roles()->syncWithoutDetaching($superAdminRole->id);
         }
 
-        // Hapus aset lama (jika ada) dan buat yang baru.
-        // Ini memastikan data aset selalu konsisten setiap kali seeding.
-        Asset::query()->delete();
-        Asset::factory(25)->create(); // Kita buat lebih banyak untuk mengetes paginasi nanti
+        // Reset tabel aset agar ID mulai dari 1 kembali
+        Schema::disableForeignKeyConstraints();
+        Asset::truncate();
+        Schema::enableForeignKeyConstraints();
+
+        // Seed campuran aset depresiasi dan apresiasi
+        Asset::factory()->count(12)->depreciating()->create();
+        Asset::factory()->count(13)->appreciating()->create();
 
         // Pastikan ada rumus penyusutan default yang aktif
         // Aktifkan satu-satunya rumus "Garis Lurus" jika belum ada
@@ -48,7 +54,7 @@ class DatabaseSeeder extends Seeder
         DepreciationFormula::query()->update(['is_active' => false]);
 
         DepreciationFormula::firstOrCreate(
-            ['name' => 'Garis Lurus'],
+            ['name' => 'Garis Lurus', 'type' => 'depreciation'],
             [
                 'expression' => '({price} - {salvage}) / {life}',
                 'description' => 'Rumus penyusutan garis lurus standar',

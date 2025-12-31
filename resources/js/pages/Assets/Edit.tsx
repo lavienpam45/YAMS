@@ -1,6 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { route } from 'ziggy-js';
 
 const absRoute = (name: string, params?: any) => {
@@ -61,7 +61,7 @@ export default function Edit({ asset }: { asset: Asset }) {
         purchase_price: asset.purchase_price || '',
         useful_life: asset.useful_life || 5,
         salvage_value: asset.salvage_value || '0',
-        type: asset.type || '',
+        type: asset.type || 'Bangunan',
         brand: asset.brand || '',
         serial_number: asset.serial_number || '',
         quantity: asset.quantity || 1,
@@ -72,6 +72,10 @@ export default function Edit({ asset }: { asset: Asset }) {
         photo: null,
         _method: 'put',
     });
+
+    const categories = useMemo(() => (
+        ['Bangunan', 'Elektronik', 'Furniture', 'Kendaraan', 'Tanah', 'Lainnya'].sort()
+    ), []);
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -93,14 +97,14 @@ export default function Edit({ asset }: { asset: Asset }) {
                                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
                         </div>
                         <div>
-                            <label htmlFor="asset_code" className="block text-sm font-medium text-gray-700">Kode Aktiva</label>
-                            <input type="text" id="asset_code" value={data.asset_code} onChange={e => setData('asset_code', e.target.value)}
-                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                            <label htmlFor="asset_code" className="block text-sm font-medium text-gray-700">Kode Aktiva (otomatis)</label>
+                            <input type="text" id="asset_code" value={data.asset_code} readOnly
+                                className="mt-1 block w-full border-gray-300 rounded-md bg-gray-100 text-gray-600 shadow-sm" />
                         </div>
                         <div>
-                            <label htmlFor="unit_code" className="block text-sm font-medium text-gray-700">Kode Satuan</label>
-                            <input type="text" id="unit_code" value={data.unit_code} onChange={e => setData('unit_code', e.target.value)}
-                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                            <label htmlFor="unit_code" className="block text-sm font-medium text-gray-700">Kode Satuan (otomatis)</label>
+                            <input type="text" id="unit_code" value={data.unit_code} readOnly
+                                className="mt-1 block w-full border-gray-300 rounded-md bg-gray-100 text-gray-600 shadow-sm" />
                         </div>
                         <div className="lg:col-span-3">
                             <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nama Barang</label>
@@ -128,9 +132,17 @@ export default function Edit({ asset }: { asset: Asset }) {
                                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
                         </div>
                         <div>
-                            <label htmlFor="type" className="block text-sm font-medium text-gray-700">Type</label>
-                            <input type="text" id="type" value={data.type} onChange={e => setData('type', e.target.value)}
-                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                            <label htmlFor="type" className="block text-sm font-medium text-gray-700">Kategori</label>
+                            <select
+                                id="type"
+                                value={data.type}
+                                onChange={e => setData('type', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                            >
+                                {categories.map((cat) => (
+                                    <option key={cat} value={cat}>{cat}</option>
+                                ))}
+                            </select>
                         </div>
                         <div>
                             <label htmlFor="brand" className="block text-sm font-medium text-gray-700">Merk</label>

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 // PENTING: Import model Rumus yang sudah dibuat
-use App\Models\DepreciationFormula; 
+use App\Models\DepreciationFormula;
 
 class Asset extends Model
 {
@@ -33,7 +33,18 @@ class Asset extends Model
         'annual_depreciation',
         'accumulated_depreciation',
         'book_value',
+        'is_appreciating',
     ];
+
+    protected function isAppreciating(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $type = strtolower($this->type ?? '');
+                return str_contains($type, 'tanah') || str_contains($type, 'bangunan');
+            }
+        );
+    }
 
     public function depreciationHistories(): HasMany
     {
@@ -50,13 +61,19 @@ class Asset extends Model
         );
     }
 
-    // 2. Hitung Penyusutan Tahunan (MENGGUNAKAN RUMUS DARI DATABASE)
+    // 2. Hitung Penyusutan/Apresiasi Tahunan (MENGGUNAKAN RUMUS DARI DATABASE)
     protected function annualDepreciation(): Attribute
     {
         return Attribute::make(
             get: function () {
-                // A. Ambil rumus yang statusnya 'is_active' = true dari database
-                $activeFormula = DepreciationFormula::where('is_active', true)->first();
+                // Check if this is an appreciating asset
+                $type = strtolower($this->type ?? '');
+                $isAppreciating = str_contains($type, 'tanah') || str_contains($type, 'bangunan');
+
+                // A. Ambil rumus sesuai tipe aset (depreciation atau appreciation)
+                $activeFormula = $isAppreciating
+                    ? DepreciationFormula::getActiveAppreciationFormula()
+                    : DepreciationFormula::getActiveDepreciationFormula();
 
                 // B. Siapkan data aset ini
                 $price = $this->purchase_price ?: 0;
@@ -66,7 +83,7 @@ class Asset extends Model
 
                 // C. Jika TIDAK ADA rumus aktif, kembalikan 0 (atau pakai default)
                 if (!$activeFormula) {
-                    return 0; 
+                    return 0;
                 }
 
                 // D. Ambil teks rumus, misal: "({price} - {salvage}) / {life}"
@@ -99,12 +116,12 @@ class Asset extends Model
             get: function () {
                 // Perhatikan: fungsi ini memanggil annual_depreciation yang sudah dinamis
                 $totalPossibleDepreciation = $this->asset_age_in_years * $this->annual_depreciation;
-                
+
                 $depreciableCost = $this->purchase_price - $this->salvage_value;
 
                 // Pastikan akumulasi tidak melebihi harga beli (dikurangi residu)
                 if ($depreciableCost < 0) return 0; // Guard clause
-                
+
                 return min($totalPossibleDepreciation, $depreciableCost);
             }
         );

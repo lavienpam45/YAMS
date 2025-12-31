@@ -32,6 +32,7 @@ interface Asset {
     inventory_status: string;
     accumulated_depreciation: number;
     book_value: number;
+    is_appreciating: boolean;
 }
 
 interface IndexProps {
@@ -42,6 +43,8 @@ interface IndexProps {
     };
     filters: {
         search: string;
+        sort?: string;
+        direction?: 'asc' | 'desc';
     };
     flash?: {
         message?: string;
@@ -60,6 +63,7 @@ export default function Index({ assets, filters }: IndexProps) {
     const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null);
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
+    // Sort-by Kategori dihapus sesuai permintaan; hanya pencarian yang dipertahankan
     const hasMountedRef = useRef(false);
 
     const { data, setData, post, processing, errors } = useForm<{ file: File | null }>({
@@ -111,16 +115,13 @@ export default function Index({ assets, filters }: IndexProps) {
             return;
         }
 
-        // Objek untuk menampung parameter query
-        const queryParams: Record<string, string> = {};
+        const baseUrl = absRoute('assets.index');
+        const params = new URLSearchParams();
+        if (debouncedSearchTerm) params.set('search', debouncedSearchTerm);
 
-        // Hanya tambahkan parameter 'search' jika ada isinya
-        if (debouncedSearchTerm) {
-            queryParams.search = debouncedSearchTerm;
-        }
+        const target = params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
 
-        // Lakukan request hanya ketika pencarian berubah
-        router.get(absRoute('assets.index'), queryParams, {
+        router.visit(target, {
             preserveState: true,
             replace: true,
             preserveScroll: true,
@@ -158,17 +159,19 @@ export default function Index({ assets, filters }: IndexProps) {
                 </form>
             </div>
             <div className="mb-4">
-                <div className="relative rounded-md shadow-sm">
-                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                    <div className="relative rounded-md shadow-sm md:col-span-3">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        </div>
+                        <input
+                            type="search"
+                            className="block w-full rounded-md border-0 py-2 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#7ACAB0] sm:text-sm"
+                            placeholder="Cari berdasarkan nama barang, kode, atau serial number..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                     </div>
-                    <input
-                        type="search"
-                        className="block w-full rounded-md border-0 py-2 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#7ACAB0] sm:text-sm"
-                        placeholder="Cari berdasarkan nama barang, kode, atau serial number..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
                 </div>
             </div>
             <div className="bg-white rounded-lg shadow">
@@ -198,10 +201,10 @@ export default function Index({ assets, filters }: IndexProps) {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {assets.data.length > 0 ? (
-                                assets.data.map((asset, index) => (
+                            {(assets?.data?.length ?? 0) > 0 ? (
+                                (assets?.data ?? []).map((asset, index) => (
                                     <Link as="tr" href={absRoute('assets.show', asset.id)} key={asset.id} className="hover:bg-gray-50 cursor-pointer">
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{assets.from + index}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{(assets?.from ?? 0) + index}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {asset.photo ? (
                                                 <img src={`/storage/${asset.photo}`} alt={asset.name} className="h-10 w-10 object-cover rounded" />
@@ -215,9 +218,21 @@ export default function Index({ assets, filters }: IndexProps) {
                                         <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{asset.name}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.received_date}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{formatPrice(asset.purchase_price)}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-red-600">({formatPrice(asset.accumulated_depreciation)})</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm">
+                                            <span className={asset.is_appreciating ? 'text-green-600' : 'text-red-600'}>
+                                                {asset.is_appreciating ? '📈 +' : '📉 -'}
+                                                {formatPrice(asset.accumulated_depreciation)}
+                                            </span>
+                                        </td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{formatPrice(asset.book_value)}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.type}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm">
+                                            <div className="flex items-center gap-2">
+                                                <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${asset.is_appreciating ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                                                    {asset.is_appreciating ? '📈 Apresiasi' : '📉 Penyusutan'}
+                                                </span>
+                                                <span className="text-gray-700">{asset.type}</span>
+                                            </div>
+                                        </td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.brand}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.serial_number}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.quantity}</td>
@@ -243,7 +258,7 @@ export default function Index({ assets, filters }: IndexProps) {
                         </tbody>
                     </table>
                 </div>
-                <Pagination links={assets.links} />
+                <Pagination links={assets?.links ?? []} />
             </div>
             <ConfirmationModal show={isModalOpen} onClose={closeDeleteModal} onConfirm={confirmDelete} title="Hapus Aset" message={`Apakah Anda yakin ingin menghapus aset "${assetToDelete?.name}"? Aksi ini tidak dapat dibatalkan.`} />
         </>

@@ -36,6 +36,7 @@ export default function AppLayout({ children, title }: AppLayoutProps) {
         { name: 'Laporan', routeName: 'reports.index', check: 'Reports', icon: ChartPieIcon, allowed: ['superadmin', 'admin'] },
         { name: 'Manajemen Pengguna', routeName: 'users.index', check: 'Users', icon: UsersIcon, allowed: ['superadmin'] },
         { name: 'Manajemen Rumus', routeName: 'formulas.index', check: 'Formulas', icon: UsersIcon, allowed: ['superadmin'] },
+        { name: 'Kalkulator Aset', routeName: 'calculator.index', check: 'Calculator', icon: UsersIcon, allowed: ['superadmin', 'admin'] },
         { name: 'Pengaturan', routeName: 'settings.show', check: 'settings', icon: Cog6ToothIcon, allowed: ['superadmin', 'admin', 'user'] },
     ];
 

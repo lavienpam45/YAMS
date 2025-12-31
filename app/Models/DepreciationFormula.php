@@ -9,7 +9,7 @@ class DepreciationFormula extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'expression', 'is_active', 'description'];
+    protected $fillable = ['name', 'expression', 'is_active', 'description', 'type'];
 
     // Variabel yang diizinkan dalam rumus
     public static $allowedVariables = [
@@ -18,4 +18,14 @@ class DepreciationFormula extends Model
         '{life}' => 'Umur Manfaat (Tahun)',
         '{age}' => 'Umur Aset Saat Ini (Tahun)',
     ];
+
+    public static function getActiveDepreciationFormula()
+    {
+        return self::where('is_active', true)->where('type', 'depreciation')->first();
+    }
+
+    public static function getActiveAppreciationFormula()
+    {
+        return self::where('is_active', true)->where('type', 'appreciation')->first();
+    }
 }

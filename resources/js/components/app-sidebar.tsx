@@ -29,6 +29,11 @@ const mainNavItems: NavItem[] = [
         href: '/formulas', // Sesuaikan dengan route name 'formulas.index'
         icon: Calculator,
     },
+    {
+        title: 'Kalkulator Aset',
+        href: '/calculator',
+        icon: Calculator,
+    },
 ];
 
 const footerNavItems: NavItem[] = [

@@ -28,17 +28,30 @@ class AssetController extends Controller
             });
         }
 
-        $assets = $assetsQuery->latest()->paginate(10)->withQueryString();
+        if ($request->input('sort') === 'type') {
+            $direction = $request->input('direction', 'asc');
+            $assetsQuery->orderBy('type', $direction === 'desc' ? 'desc' : 'asc');
+        } else {
+            $assetsQuery->latest();
+        }
+
+        $assets = $assetsQuery->paginate(10)->withQueryString();
 
         return Inertia::render('Assets/Index', [
             'assets' => $assets,
-            'filters' => $request->only(['search'])
+            'filters' => $request->only(['search', 'sort', 'direction'])
         ]);
     }
 
     public function create(): Response
     {
-        return Inertia::render('Assets/Create');
+        $nextAssetCode = $this->nextSequentialCode('asset_code');
+        $nextUnitCode = $this->nextSequentialCode('unit_code');
+
+        return Inertia::render('Assets/Create', [
+            'nextAssetCode' => $nextAssetCode,
+            'nextUnitCode' => $nextUnitCode,
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -63,6 +76,14 @@ class AssetController extends Controller
             'inventory_status' => 'nullable|string|max:255',
             'photo' => 'nullable|image|max:2048', // Max 2MB
         ]);
+
+        // Isi kode otomatis jika tidak diisi (auto-increment sederhana)
+        if (empty($validatedData['asset_code'])) {
+            $validatedData['asset_code'] = $this->nextSequentialCode('asset_code');
+        }
+        if (empty($validatedData['unit_code'])) {
+            $validatedData['unit_code'] = $this->nextSequentialCode('unit_code');
+        }
 
         // Proses upload file jika ada
         if ($request->hasFile('photo')) {
@@ -240,5 +261,12 @@ class AssetController extends Controller
         }
 
         return $result;
+    }
+
+    private function nextSequentialCode(string $column): string
+    {
+        $max = Asset::max($column);
+        $numeric = $max ? (int)preg_replace('/[^0-9]/', '', (string)$max) : 0;
+        return (string)($numeric + 1);
     }
 }

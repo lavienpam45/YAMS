@@ -40,6 +40,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('formulas', [FormulaController::class, 'store'])->name('formulas.store');
         Route::post('formulas/{formula}/activate', [FormulaController::class, 'activate'])->name('formulas.activate');
         Route::delete('formulas/{formula}', [FormulaController::class, 'destroy'])->name('formulas.destroy');
+        Route::get('calculator', [FormulaController::class, 'calculator'])->name('calculator.index');
 
     });
 

@@ -1,6 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { route } from 'ziggy-js';
 
 const absRoute = (name: string, params?: any) => {
@@ -9,7 +9,12 @@ const absRoute = (name: string, params?: any) => {
     return r;
 };
 
-export default function Create() {
+interface CreateProps {
+    nextAssetCode: string;
+    nextUnitCode: string;
+}
+
+export default function Create({ nextAssetCode, nextUnitCode }: CreateProps) {
     // Menambahkan 'photo' ke tipe data form
     const { data, setData, post, processing, errors } = useForm<{
         name: string;
@@ -32,13 +37,13 @@ export default function Create() {
     }>({
         name: '',
         room_name: '',
-        asset_code: '',
-        unit_code: '',
+        asset_code: nextAssetCode,
+        unit_code: nextUnitCode,
         received_date: '',
         purchase_price: '',
         useful_life: 5,
         salvage_value: 0,
-        type: '',
+        type: 'Bangunan',
         brand: '',
         serial_number: '',
         quantity: 1,
@@ -48,6 +53,10 @@ export default function Create() {
         inventory_status: 'Tercatat',
         photo: null, // Nilai awal untuk file adalah null
     });
+
+    const categories = useMemo(() => (
+        ['Bangunan', 'Elektronik', 'Furniture', 'Kendaraan', 'Tanah', 'Lainnya'].sort()
+    ), []);
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -72,16 +81,26 @@ export default function Create() {
                         </div>
 
                         <div>
-                            <label htmlFor="asset_code" className="block text-sm font-medium text-gray-700">Kode Aktiva</label>
-                            <input type="text" id="asset_code" value={data.asset_code} onChange={(e) => setData('asset_code', e.target.value)}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                            <label htmlFor="asset_code" className="block text-sm font-medium text-gray-700">Kode Aktiva (otomatis)</label>
+                            <input
+                                type="text"
+                                id="asset_code"
+                                value={data.asset_code}
+                                readOnly
+                                className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 text-gray-600 shadow-sm"
+                            />
                             {errors.asset_code && <div className="mt-1 text-sm text-red-600">{errors.asset_code}</div>}
                         </div>
 
                         <div>
-                            <label htmlFor="unit_code" className="block text-sm font-medium text-gray-700">Kode Satuan</label>
-                            <input type="text" id="unit_code" value={data.unit_code} onChange={(e) => setData('unit_code', e.target.value)}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                            <label htmlFor="unit_code" className="block text-sm font-medium text-gray-700">Kode Satuan (otomatis)</label>
+                            <input
+                                type="text"
+                                id="unit_code"
+                                value={data.unit_code}
+                                readOnly
+                                className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 text-gray-600 shadow-sm"
+                            />
                             {errors.unit_code && <div className="mt-1 text-sm text-red-600">{errors.unit_code}</div>}
                         </div>
 
@@ -121,9 +140,17 @@ export default function Create() {
                         </div>
 
                         <div>
-                            <label htmlFor="type" className="block text-sm font-medium text-gray-700">Type</label>
-                            <input type="text" id="type" value={data.type} onChange={(e) => setData('type', e.target.value)}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                            <label htmlFor="type" className="block text-sm font-medium text-gray-700">Kategori</label>
+                            <select
+                                id="type"
+                                value={data.type || categories[0]}
+                                onChange={(e) => setData('type', e.target.value)}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            >
+                                {categories.map((cat) => (
+                                    <option key={cat} value={cat}>{cat}</option>
+                                ))}
+                            </select>
                         </div>
 
                         <div>

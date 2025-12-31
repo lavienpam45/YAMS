@@ -21,6 +21,7 @@ class FormulaController extends Controller
         $request->validate([
             'name' => 'required|string',
             'expression' => 'required|string',
+            'type' => 'required|in:depreciation,appreciation',
         ]);
 
         DepreciationFormula::create($request->all());
@@ -29,17 +30,25 @@ class FormulaController extends Controller
 
     public function activate(DepreciationFormula $formula)
     {
-        // Set semua ke tidak aktif
-        DepreciationFormula::query()->update(['is_active' => false]);
+        // Set semua rumus dengan tipe yang sama ke tidak aktif
+        DepreciationFormula::where('type', $formula->type)->update(['is_active' => false]);
         // Set yang dipilih ke aktif
         $formula->update(['is_active' => true]);
 
         return redirect()->back();
     }
-    
+
     public function destroy(DepreciationFormula $formula)
     {
         $formula->delete();
         return redirect()->back();
+    }
+
+    public function calculator()
+    {
+        return Inertia::render('Calculator/Index', [
+            'formulas' => DepreciationFormula::all(),
+            'variables' => DepreciationFormula::$allowedVariables,
+        ]);
     }
 }
