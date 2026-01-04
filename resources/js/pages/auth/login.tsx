@@ -2,13 +2,15 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, Eye, EyeOff, Loader2, ShieldCheck } from 'lucide-react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { ArrowLeft, Eye, EyeOff, Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
 import { FormEventHandler, useState } from 'react';
 
 // import { route } from 'ziggy-js'; // Uncomment jika perlu manual import
 
 export default function Login({ status }: { status?: string }) {
+    const { flash } = usePage().props as { flash?: { error?: string } };
+
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
@@ -89,6 +91,22 @@ export default function Login({ status }: { status?: string }) {
                             Masuk ke akun YAMS Anda untuk melanjutkan
                         </p>
                     </div>
+
+                    {flash?.error && (
+                        <div className="rounded-lg bg-red-50 border border-red-200 p-4">
+                            <div className="flex items-start gap-3">
+                                <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1">
+                                    <h3 className="text-sm font-semibold text-red-800 mb-1">
+                                        Akses Ditolak
+                                    </h3>
+                                    <p className="text-sm text-red-700">
+                                        {flash.error}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {status && (
                         <div className="rounded-md bg-green-50 p-3 text-sm font-medium text-green-600">

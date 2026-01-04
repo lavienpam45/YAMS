@@ -25,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // === TAMBAHKAN BAGIAN INI UNTUK MENDAFTARKAN ALIAS ===
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
+            'has.role' => \App\Http\Middleware\EnsureUserHasRole::class,
         ]);
         // ========================================================
     })

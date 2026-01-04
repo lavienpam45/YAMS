@@ -33,7 +33,7 @@ export default function AppLayout({ children, title }: AppLayoutProps) {
     const allNavLinks = [
         { name: 'Dashboard', routeName: 'dashboard', check: 'dashboard', icon: HomeIcon, allowed: ['superadmin', 'admin', 'user'] },
         { name: 'Manajemen Aset', routeName: 'assets.index', check: 'Assets', icon: ArchiveBoxIcon, allowed: ['superadmin', 'admin'] },
-        { name: 'Laporan', routeName: 'reports.index', check: 'Reports', icon: ChartPieIcon, allowed: ['superadmin', 'admin'] },
+        { name: 'Laporan', routeName: 'reports.index', check: 'Reports', icon: ChartPieIcon, allowed: ['superadmin', 'admin', 'user'] },
         { name: 'Manajemen Pengguna', routeName: 'users.index', check: 'Users', icon: UsersIcon, allowed: ['superadmin'] },
         { name: 'Manajemen Rumus', routeName: 'formulas.index', check: 'Formulas', icon: UsersIcon, allowed: ['superadmin'] },
         { name: 'Kalkulator Aset', routeName: 'calculator.index', check: 'Calculator', icon: UsersIcon, allowed: ['superadmin', 'admin'] },

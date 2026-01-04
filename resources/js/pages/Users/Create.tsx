@@ -13,7 +13,7 @@ export default function Create({ roles }: CreateUserProps) {
         email: '',
         password: '',
         password_confirmation: '',
-        role_id: '3', // Default ke 'user' (ID 3)
+        role_id: '', // Default ke No Role
     });
 
     function handleSubmit(e: React.FormEvent) {
@@ -54,10 +54,12 @@ export default function Create({ roles }: CreateUserProps) {
                             <label htmlFor="role_id" className="block text-sm font-medium text-gray-700">Peran</label>
                             <select id="role_id" value={data.role_id} onChange={e => setData('role_id', e.target.value)}
                                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                                <option value="">No Role (Tidak dapat login)</option>
                                 {roles.map(role => (
                                     <option key={role.id} value={role.id}>{role.label}</option>
                                 ))}
                             </select>
+                            <p className="mt-1 text-xs text-gray-500">Pengguna dengan "No Role" tidak dapat login sampai diberi role oleh Super Admin.</p>
                         </div>
                     </div>
                     <div className="mt-6 flex justify-end gap-4">

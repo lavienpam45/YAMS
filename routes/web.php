@@ -16,7 +16,7 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'has.role'])->group(function () {
 
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -32,16 +32,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('assets/{asset}', [AssetController::class, 'destroy'])->name('assets.destroy');
         Route::post('assets/import', [AssetController::class, 'import'])->name('assets.import');
 
-        Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
-        Route::get('reports/export/excel', [ReportController::class, 'exportExcel'])->name('reports.export.excel');
-        Route::get('reports/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.export.pdf');
-
         Route::get('formulas', [FormulaController::class, 'index'])->name('formulas.index');
         Route::post('formulas', [FormulaController::class, 'store'])->name('formulas.store');
         Route::post('formulas/{formula}/activate', [FormulaController::class, 'activate'])->name('formulas.activate');
         Route::delete('formulas/{formula}', [FormulaController::class, 'destroy'])->name('formulas.destroy');
         Route::get('calculator', [FormulaController::class, 'calculator'])->name('calculator.index');
 
+    });
+
+    Route::middleware('role:superadmin,admin,user')->group(function () {
+        Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('reports/export/excel', [ReportController::class, 'exportExcel'])->name('reports.export.excel');
+        Route::get('reports/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.export.pdf');
     });
 
     Route::middleware('role:superadmin')->group(function () {

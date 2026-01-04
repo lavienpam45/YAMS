@@ -14,7 +14,7 @@ export default function Edit({ user, roles }: EditUserProps) {
         email: user.email,
         password: '',
         password_confirmation: '',
-        role_id: user.roles[0]?.id.toString() || '3', // Ambil ID peran pertama, atau default ke 3 (user)
+        role_id: user.roles[0]?.id.toString() || '', // Ambil ID peran pertama, atau default ke '' (No Role)
     });
 
     function handleSubmit(e: React.FormEvent) {
@@ -47,10 +47,12 @@ export default function Edit({ user, roles }: EditUserProps) {
                             <label htmlFor="role_id" className="block text-sm font-medium text-gray-700">Peran</label>
                             <select id="role_id" value={data.role_id} onChange={e => setData('role_id', e.target.value)}
                                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                                <option value="">No Role (Tidak dapat login)</option>
                                 {roles.map(role => (
                                     <option key={role.id} value={role.id}>{role.label}</option>
                                 ))}
                             </select>
+                            <p className="mt-1 text-xs text-gray-500">Pengguna dengan "No Role" tidak dapat login sampai diberi role oleh Super Admin.</p>
                         </div>
                          <hr className="my-4"/>
                          <p className="text-sm text-gray-500">Isi hanya jika ingin mengubah password.</p>

@@ -61,7 +61,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role_id' => 'required|exists:roles,id',
+            'role_id' => 'nullable|exists:roles,id',
         ]);
 
         $user = User::create([
@@ -70,11 +70,13 @@ class UserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        // Lampirkan peran yang dipilih ke pengguna baru
-        $user->roles()->attach($request->role_id);
+        // Lampirkan peran yang dipilih ke pengguna baru (jika dipilih)
+        if ($request->filled('role_id')) {
+            $user->roles()->attach($request->role_id);
+        }
 
         $this->logActivity('user.created', $user, [
-            'role' => Role::find($request->role_id)?->name,
+            'role' => $request->filled('role_id') ? Role::find($request->role_id)?->name : 'No Role',
         ]);
 
         return redirect()->route('users.index')->with('message', 'Pengguna baru berhasil ditambahkan.');
@@ -106,7 +108,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             // Pastikan email unik, kecuali untuk email user itu sendiri
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
-            'role_id' => 'required|exists:roles,id',
+            'role_id' => 'nullable|exists:roles,id',
             // Password bersifat opsional, hanya diubah jika diisi
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
         ]);
@@ -123,10 +125,15 @@ class UserController extends Controller
         $user->save();
 
         // 'sync' akan menghapus semua peran lama dan menerapkan yang baru
-        $user->roles()->sync($request->role_id);
+        // Jika role_id kosong, detach semua roles
+        if ($request->filled('role_id')) {
+            $user->roles()->sync($request->role_id);
+        } else {
+            $user->roles()->detach();
+        }
 
         $this->logActivity('user.updated', $user, [
-            'role' => Role::find($request->role_id)?->name,
+            'role' => $request->filled('role_id') ? Role::find($request->role_id)?->name : 'No Role',
             'changed' => collect($user->getChanges())->only(['name', 'email'])->all(),
         ]);
 
