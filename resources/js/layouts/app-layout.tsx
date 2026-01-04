@@ -1,8 +1,8 @@
 import Sidebar from '@/layouts/partials/Sidebar';
 import { type SharedData } from '@/types';
 import { ArchiveBoxIcon, ChartPieIcon, ChevronDownIcon, Cog6ToothIcon, HomeIcon, UsersIcon } from '@heroicons/react/24/outline';
-import { Head, Link, usePage } from '@inertiajs/react';
-import React, { useEffect, useState } from 'react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import React, { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { route } from 'ziggy-js';
 
@@ -20,6 +20,8 @@ export default function AppLayout({ children, title }: AppLayoutProps) {
     const roles = auth.roles || [];
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+    const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const idleTimeoutMs = 30 * 60 * 1000; // 30 menit
 
     useEffect(() => {
         if (flash?.message) {
@@ -29,6 +31,32 @@ export default function AppLayout({ children, title }: AppLayoutProps) {
             toast.error(flash.error);
         }
     }, [flash]);
+
+    useEffect(() => {
+        const handleIdleLogout = () => {
+            toast.error('Anda otomatis keluar setelah 30 menit tidak aktif.');
+            router.post(route('logout'));
+        };
+
+        const resetTimer = () => {
+            if (idleTimerRef.current) {
+                clearTimeout(idleTimerRef.current);
+            }
+            idleTimerRef.current = setTimeout(handleIdleLogout, idleTimeoutMs);
+        };
+
+        const events: Array<keyof WindowEventMap> = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+        events.forEach((event) => window.addEventListener(event, resetTimer));
+
+        resetTimer();
+
+        return () => {
+            events.forEach((event) => window.removeEventListener(event, resetTimer));
+            if (idleTimerRef.current) {
+                clearTimeout(idleTimerRef.current);
+            }
+        };
+    }, []);
 
     const allNavLinks = [
         { name: 'Dashboard', routeName: 'dashboard', check: 'dashboard', icon: HomeIcon, allowed: ['superadmin', 'admin', 'user'] },
