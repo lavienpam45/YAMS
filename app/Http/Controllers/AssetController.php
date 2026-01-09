@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Imports\AssetsImport;
 use App\Models\Asset;
 use App\Models\ActivityLog;
+use App\Models\DepreciationFormula;
+use App\Models\DepreciationHistory;
+use App\Services\NotificationService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -45,8 +49,8 @@ class AssetController extends Controller
 
     public function create(): Response
     {
-        $nextAssetCode = $this->nextSequentialCode('asset_code');
-        $nextUnitCode = $this->nextSequentialCode('unit_code');
+        $nextAssetCode = $this->nextSequentialCode('asset_code', 'AKT');
+        $nextUnitCode = $this->nextSequentialCode('unit_code', 'SAT');
 
         return Inertia::render('Assets/Create', [
             'nextAssetCode' => $nextAssetCode,
@@ -60,7 +64,7 @@ class AssetController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'room_name' => 'nullable|string|max:255',
-            'asset_code' => 'nullable|string|max:255|unique:assets',
+            'asset_code' => 'nullable|string|max:255', // Tidak perlu unique validation karena akan auto-generate
             'unit_code' => 'nullable|string|max:255',
             'received_date' => 'nullable|date',
             'purchase_price' => 'required|numeric|min:0',
@@ -77,13 +81,64 @@ class AssetController extends Controller
             'photo' => 'nullable|image|max:2048', // Max 2MB
         ]);
 
-        // Isi kode otomatis jika tidak diisi (auto-increment sederhana)
-        if (empty($validatedData['asset_code'])) {
-            $validatedData['asset_code'] = $this->nextSequentialCode('asset_code');
+        // SELALU generate kode baru secara otomatis (ignore input dari form)
+        $validatedData['asset_code'] = $this->nextSequentialCode('asset_code', 'AKT');
+        $validatedData['unit_code'] = $this->nextSequentialCode('unit_code', 'SAT');
+
+        // **PENTING: Hitung current_book_value saat create berdasarkan umur aset**
+        $currentBookValue = $validatedData['purchase_price'];
+        $lastDepreciationDate = null;
+        $notificationMessage = null;
+
+        if (!empty($validatedData['received_date'])) {
+            $receivedDate = Carbon::parse($validatedData['received_date'])->startOfDay();
+            $today = now()->startOfDay();
+            $ageYears = $this->calculateAgeInYears($receivedDate, $today); // Gunakan metode pro-rata
+
+            // Jika aset sudah lebih dari 0 tahun (1 hari atau lebih), hitung nilai sekarang
+            if ($ageYears > 0) {
+                // Tentukan tipe aset (appreciating atau depreciating)
+                $type = strtolower($validatedData['type'] ?? '');
+                $isAppreciating = str_contains($type, 'tanah') || str_contains($type, 'bangunan');
+
+                // Ambil rumus aktif
+                $formula = $isAppreciating
+                    ? DepreciationFormula::getActiveAppreciationFormula()
+                    : DepreciationFormula::getActiveDepreciationFormula();
+
+                if ($formula) {
+                    // Evaluasi formula dengan variabel
+                    $annualChange = $this->evaluateExpression($formula->expression, [
+                        '{price}' => $validatedData['purchase_price'] ?: 0,
+                        '{salvage}' => $validatedData['salvage_value'] ?: 0,
+                        '{life}' => max(1, $validatedData['useful_life']),
+                        '{age}' => $ageYears,
+                    ]);
+
+                    if ($annualChange !== null) {
+                        $delta = abs($annualChange);
+
+                        if ($isAppreciating) {
+                            $currentBookValue = $validatedData['purchase_price'] + $delta;
+                        } else {
+                            $floor = $validatedData['salvage_value'] ?? 0;
+                            $currentBookValue = max($floor, $validatedData['purchase_price'] - $delta);
+                        }
+
+                        $currentBookValue = round($currentBookValue, 2);
+                        // PENTING: Set last_depreciation_date ke NULL agar scheduler bisa proses
+                        // di anniversary date (received_date + 1 year, 2 years, etc.)
+                        $lastDepreciationDate = null;
+
+                        // Siapkan message notifikasi
+                        $notificationMessage = "Nilai aset '{$validatedData['name']}' telah dihitung berdasarkan umur " . round($ageYears, 2) . " tahun. Nilai saat ini: " . number_format($currentBookValue, 0, ',', '.');
+                    }
+                }
+            }
         }
-        if (empty($validatedData['unit_code'])) {
-            $validatedData['unit_code'] = $this->nextSequentialCode('unit_code');
-        }
+
+        $validatedData['current_book_value'] = $currentBookValue;
+        $validatedData['last_depreciation_date'] = $lastDepreciationDate;
 
         // Proses upload file jika ada
         if ($request->hasFile('photo')) {
@@ -96,6 +151,29 @@ class AssetController extends Controller
         $this->logActivity('asset.created', $asset->id, $asset->name, $asset->asset_code, $asset->user_assigned, [
             'fields' => collect($validatedData)->all(),
         ]);
+
+        // Kirim notifikasi ke admin
+        if ($notificationMessage) {
+            // Jika ada nilai yang dihitung, kirim notifikasi tentang perhitungan depresiasi
+            NotificationService::notifyAdmins(
+                'Aset Baru Ditambahkan dengan Perhitungan Depresiasi',
+                $notificationMessage,
+                'info',
+                [
+                    'asset_id' => $asset->id,
+                    'asset_code' => $asset->asset_code,
+                    'calculated_value' => $currentBookValue,
+                ]
+            );
+        } else {
+            // Notifikasi standar jika aset baru tanpa perhitungan depresiasi
+            NotificationService::notifyAdmins(
+                'Aset Baru Ditambahkan',
+                "Aset '{$asset->name}' dengan kode {$asset->asset_code} telah ditambahkan ke sistem.",
+                'success',
+                ['asset_id' => $asset->id, 'asset_code' => $asset->asset_code]
+            );
+        }
 
         return redirect()->route('assets.index')->with('message', 'Aset berhasil ditambahkan.');
     }
@@ -129,6 +207,7 @@ class AssetController extends Controller
         ]);
 
         $oldValues = $asset->only(array_keys($validatedData));
+        $oldReceivedDate = $asset->received_date; // Simpan nilai asli sebelum update
 
         if ($request->hasFile('photo')) {
             // Hapus foto lama jika ada
@@ -142,9 +221,19 @@ class AssetController extends Controller
 
         $asset->update($validatedData);
 
+        // Jika received_date berubah, reset last_depreciation_date agar depresiasi dihitung ulang
+        if (isset($validatedData['received_date']) && $oldReceivedDate != $validatedData['received_date']) {
+            $asset->forceFill(['last_depreciation_date' => null])->save();
+        }
+
+        // Maintenance untuk data lama yang belum memiliki current_book_value
+        if (is_null($asset->current_book_value)) {
+            $asset->forceFill(['current_book_value' => $asset->purchase_price])->save();
+        }
+
         $changes = [];
         foreach (array_keys($validatedData) as $field) {
-            if ($oldValues[$field] !== $validatedData[$field]) {
+            if (isset($oldValues[$field]) && $oldValues[$field] !== $validatedData[$field]) {
                 $changes[$field] = [
                     'old' => $oldValues[$field],
                     'new' => $validatedData[$field],
@@ -155,6 +244,14 @@ class AssetController extends Controller
         $this->logActivity('asset.updated', $asset->id, $asset->name, $asset->asset_code, $asset->user_assigned, [
             'changes' => $this->formatChangesReadable($changes),
         ]);
+
+        // Kirim notifikasi ke admin
+        NotificationService::notifyAdmins(
+            'Aset Diperbarui',
+            "Aset '{$asset->name}' dengan kode {$asset->asset_code} telah diperbarui.",
+            'info',
+            ['asset_id' => $asset->id, 'asset_code' => $asset->asset_code]
+        );
 
         return redirect()->route('assets.index')->with('message', 'Aset berhasil diperbarui.');
     }
@@ -174,6 +271,15 @@ class AssetController extends Controller
         $asset->delete();
 
         $this->logActivity('asset.deleted', $targetId, $targetName, $targetCode, $targetUser, []);
+
+        // Kirim notifikasi ke admin
+        NotificationService::notifyAdmins(
+            'Aset Dihapus',
+            "Aset '{$targetName}' dengan kode {$targetCode} telah dihapus dari sistem.",
+            'warning',
+            ['asset_code' => $targetCode]
+        );
+
         return redirect()->route('assets.index')->with('message', 'Aset berhasil dihapus.');
     }
 
@@ -263,10 +369,66 @@ class AssetController extends Controller
         return $result;
     }
 
-    private function nextSequentialCode(string $column): string
+    /**
+     * Generate kode sequential dengan prefix (misal: AKT-001, SAT-002)
+     * 
+     * @param string $column Nama kolom (asset_code atau unit_code)
+     * @param string $prefix Prefix kode (AKT atau SAT)
+     * @return string Kode dengan format PREFIX-XXX (misal: AKT-001)
+     */
+    private function nextSequentialCode(string $column, string $prefix = ''): string
     {
-        $max = Asset::max($column);
-        $numeric = $max ? (int)preg_replace('/[^0-9]/', '', (string)$max) : 0;
-        return (string)($numeric + 1);
+        // Ambil semua kode yang ada dengan prefix yang sama
+        $allCodes = Asset::whereNotNull($column)
+            ->where($column, 'LIKE', "{$prefix}%")
+            ->pluck($column);
+        
+        // Ekstrak semua angka dari kode-kode yang ada
+        $numbers = $allCodes->map(function ($code) {
+            // Ekstrak semua angka dari string
+            preg_match_all('/\d+/', (string)$code, $matches);
+            return !empty($matches[0]) ? (int)end($matches[0]) : 0;
+        });
+        
+        // Cari angka maksimum
+        $maxNumber = $numbers->max() ?? 0;
+        
+        // Angka berikutnya
+        $nextNumber = $maxNumber + 1;
+        
+        // Format dengan padding 3 digit minimum (001, 002, ..., 999, 1000, dst)
+        $paddedNumber = str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+        
+        // Return dengan format PREFIX-XXX
+        return "{$prefix}-{$paddedNumber}";
+    }
+
+    /**
+     * Evaluasi expression dengan variable replacement (helper method)
+     */
+    private function evaluateExpression(string $expression, array $variables): ?float
+    {
+        $built = str_replace(array_keys($variables), array_values($variables), $expression);
+
+        try {
+            return (float) eval("return {$built};");
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Hitung age dalam tahun dengan desimal (pro-rata)
+     * Contoh: 0.5, 1.25, 2.75, dst
+     */
+    private function calculateAgeInYears(Carbon $receivedDate, Carbon $today): float
+    {
+        $diff = $receivedDate->diff($today);
+
+        // Hitung total hari dari received_date sampai today
+        $totalDays = $receivedDate->diffInDays($today);
+
+        // Hitung tahun dengan desimal (365.25 hari per tahun untuk account leap years)
+        return $totalDays / 365.25;
     }
 }

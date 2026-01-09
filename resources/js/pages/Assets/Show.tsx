@@ -23,10 +23,14 @@ interface Asset {
     quantity: number; status: string; description: string | null;
     user_assigned: string; inventory_status: string;
     accumulated_depreciation: number; book_value: number;
+    current_book_value?: number | null;
+    last_depreciation_date?: string | null;
+    is_appreciating?: boolean;
     depreciation_histories: DepreciationHistory[];
 }
 
 const formatPrice = (value: number | string) => { const numberValue = typeof value === 'string' ? parseFloat(value) : value; if (isNaN(numberValue)) { return '-'; } return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(numberValue); };
+const formatChange = (value: number | string) => { const numberValue = typeof value === 'string' ? parseFloat(value) : value; if (isNaN(numberValue)) { return '-'; } const isIncrease = numberValue < 0; const absolute = Math.abs(numberValue); const formatted = formatPrice(absolute); return `${isIncrease ? '+' : '-'}${formatted}`; };
 const DetailItem = ({ label, value }: { label: string, value: string | number | null | undefined }) => ( <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0"><dt className="text-sm font-medium leading-6 text-gray-500">{label}</dt><dd className="mt-1 text-sm font-semibold leading-6 text-gray-900 sm:col-span-2 sm:mt-0">{value || '-'}</dd></div> );
 
 export default function Show({ asset }: { asset: Asset }) {
@@ -78,7 +82,8 @@ export default function Show({ asset }: { asset: Asset }) {
                             <DetailItem label="Masa Manfaat" value={`${asset.useful_life} Tahun`} />
                             <DetailItem label="Nilai Sisa" value={formatPrice(asset.salvage_value)} />
                             <DetailItem label="Akumulasi Penyusutan" value={formatPrice(asset.accumulated_depreciation)} />
-                            <DetailItem label="Nilai Buku Saat Ini" value={formatPrice(asset.book_value)} />
+                            <DetailItem label="Harga Saat Ini Tersimpan" value={formatPrice(asset.current_book_value ?? asset.book_value)} />
+                            <DetailItem label="Terakhir Diperbarui" value={asset.last_depreciation_date || asset.received_date || '-'} />
                         </dl>
                     </div>
                 </div>
@@ -92,9 +97,9 @@ export default function Show({ asset }: { asset: Asset }) {
                             <thead className="bg-gray-50">
                                 <tr>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Tahun</th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Nilai Buku Awal</th>
+                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Harga Awal</th>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Penyusutan Tahun Ini</th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Nilai Buku Akhir</th>
+                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Harga Akhir</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
@@ -103,7 +108,7 @@ export default function Show({ asset }: { asset: Asset }) {
                                         <tr key={history.id}>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{history.year}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatPrice(history.book_value_start)}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600">({formatPrice(history.depreciation_value)})</td>
+                                            <td className={`px-6 py-4 whitespace-nowrap text-sm ${parseFloat(history.depreciation_value) < 0 ? 'text-green-600' : 'text-red-600'}`}>{formatChange(history.depreciation_value)}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{formatPrice(history.book_value_end)}</td>
                                         </tr>
                                     ))

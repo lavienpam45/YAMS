@@ -5,6 +5,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import React, { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { route } from 'ziggy-js';
+import { NotificationBell } from '@/components/NotificationBell';
 
 // --- PERBAIKAN UTAMA DI SINI ---
 // Definisikan tipe props yang diterima oleh AppLayout
@@ -94,8 +95,11 @@ export default function AppLayout({ children, title }: AppLayoutProps) {
                 <div className={`flex items-center justify-between gap-3 px-6 py-4 transition-all duration-200 ${headerContentPadding}`}>
                     <h1 className="text-xl font-semibold text-gray-800">{title}</h1>
 
-                    {/* Profile Dropdown */}
-                    <div className="relative">
+                    <div className="flex items-center gap-2">
+                        <NotificationBell />
+
+                        {/* Profile Dropdown */}
+                        <div className="relative">
                         <button
                             onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                             className="flex items-center gap-2 hover:bg-gray-50 rounded-lg px-3 py-2 transition"
@@ -131,6 +135,7 @@ export default function AppLayout({ children, title }: AppLayoutProps) {
                                 </Link>
                             </div>
                         )}
+                        </div>
                     </div>
                 </div>
             </header>

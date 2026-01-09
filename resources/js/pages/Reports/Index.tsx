@@ -56,7 +56,7 @@ export default function Index({ assets, filters, categories, summary }: ReportPr
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200"><div className="text-sm text-gray-500">Total Aset</div><div className="text-2xl font-bold text-gray-800 mt-1">{summary.total_assets} item</div></div>
                 <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200"><div className="text-sm text-gray-500">Total Harga Beli</div><div className="text-2xl font-bold text-gray-800 mt-1">{formatPrice(summary.total_purchase_value)}</div></div>
-                <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200"><div className="text-sm text-gray-500">Total Nilai Buku</div><div className="text-2xl font-bold text-gray-800 mt-1">{formatPrice(summary.total_book_value)}</div></div>
+                <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200"><div className="text-sm text-gray-500">Total Harga Saat Ini</div><div className="text-2xl font-bold text-gray-800 mt-1">{formatPrice(summary.total_book_value)}</div></div>
             </div>
 
             <div className="p-6 bg-white rounded-lg shadow border border-gray-100">
@@ -98,7 +98,7 @@ export default function Index({ assets, filters, categories, summary }: ReportPr
                                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Tipe</th>
                                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Tahun</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lokasi</th>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Nilai Buku</th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Harga Saat Ini</th>
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">

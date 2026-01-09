@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SettingsController; // Pastikan ini ada jika Anda menggunakan Settings
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -58,6 +59,12 @@ Route::middleware(['auth', 'verified', 'has.role'])->group(function () {
     // Settings accessible to all authenticated users
     Route::get('settings', [SettingsController::class, 'show'])->name('settings.show');
     Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
+
+    // Notification routes (accessible to all authenticated users)
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
+    Route::post('notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
+    Route::delete('notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
 });
 
 // require __DIR__.'/settings.php'; <-- BARIS INI DIHAPUS

@@ -63,7 +63,7 @@
                 <th>Tgl Terima</th>
                 <th>Merk</th>
                 <th>Kondisi</th>
-                <th>Nilai Buku</th>
+                <th>Harga Saat Ini</th>
             </tr>
         </thead>
         <tbody>

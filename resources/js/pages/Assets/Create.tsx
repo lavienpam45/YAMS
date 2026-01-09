@@ -87,8 +87,10 @@ export default function Create({ nextAssetCode, nextUnitCode }: CreateProps) {
                                 id="asset_code"
                                 value={data.asset_code}
                                 readOnly
-                                className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 text-gray-600 shadow-sm"
+                                placeholder="Auto-generated"
+                                className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 text-gray-600 shadow-sm cursor-not-allowed"
                             />
+                            <p className="mt-1 text-xs text-gray-500">Kode akan di-generate otomatis saat menyimpan</p>
                             {errors.asset_code && <div className="mt-1 text-sm text-red-600">{errors.asset_code}</div>}
                         </div>
 
@@ -99,8 +101,10 @@ export default function Create({ nextAssetCode, nextUnitCode }: CreateProps) {
                                 id="unit_code"
                                 value={data.unit_code}
                                 readOnly
-                                className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 text-gray-600 shadow-sm"
+                                placeholder="Auto-generated"
+                                className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 text-gray-600 shadow-sm cursor-not-allowed"
                             />
+                            <p className="mt-1 text-xs text-gray-500">Kode akan di-generate otomatis saat menyimpan</p>
                             {errors.unit_code && <div className="mt-1 text-sm text-red-600">{errors.unit_code}</div>}
                         </div>
 

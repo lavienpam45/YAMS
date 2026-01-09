@@ -39,7 +39,7 @@ export default function Welcome({ auth }: PageProps) {
         },
         {
             question: 'Bagaimana format laporan yang bisa dihasilkan?',
-            answer: 'YAMS dapat menghasilkan laporan dalam format PDF dan Excel dengan visualisasi data yang profesional. Laporan mencakup nilai buku aset, penyusutan akumulatif, status lokasi, dan informasi penanggungjawab untuk keperluan audit dan presentasi.'
+            answer: 'YAMS dapat menghasilkan laporan dalam format PDF dan Excel dengan visualisasi data yang profesional. Laporan mencakup harga aset saat ini, penyusutan akumulatif, status lokasi, dan informasi penanggungjawab untuk keperluan audit dan presentasi.'
         }
     ];
 

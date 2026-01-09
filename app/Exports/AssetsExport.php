@@ -33,7 +33,7 @@ class AssetsExport implements FromCollection, WithHeadings, WithMapping
             'Masa Manfaat (Tahun)',
             'Nilai Sisa',
             'Akumulasi Penyusutan',
-            'Nilai Buku',
+            'Harga Saat Ini',
             'Tipe',
             'Merk',
             'Serial Number',

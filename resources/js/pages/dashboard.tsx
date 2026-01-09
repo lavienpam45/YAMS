@@ -196,7 +196,7 @@ export default function Dashboard({
                 />
                 <StatCard
                     icon={<CreditCardIcon className="h-8 w-8 text-[#3D7F6A]" />}
-                    title="Nilai Buku Terkini"
+                    title="Harga Saat Ini"
                     value={formatCardValue(summaryData.current_book_value)}
                 />
             </div>
@@ -242,7 +242,7 @@ export default function Dashboard({
                                             Nama Barang
                                         </th>
                                         <th className="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
-                                            Nilai Buku
+                                            Harga Saat Ini
                                         </th>
                                         <th className="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
                                             Kondisi

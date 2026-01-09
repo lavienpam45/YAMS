@@ -25,6 +25,9 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithValidation
                 continue; // Lompati baris jika tidak ada nama barang
             }
 
+            $purchasePrice = $row['harga_beli'] ?? 0;
+            $receivedDate = $row['tanggal_terima'];
+
             Asset::create([
                 'name'             => $row['nama_barang'],
                 'room_name'        => $row['nama_ruang'],
@@ -32,9 +35,11 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithValidation
                 'unit_code'        => $row['kode_satuan'],
 
                 // Menggunakan key 'tanggal_terima' yang benar
-                'received_date'    => $row['tanggal_terima'],
+                'received_date'    => $receivedDate,
 
-                'purchase_price'   => $row['harga_beli'] ?? 0, // Default 0 jika tidak ada
+                'purchase_price'   => $purchasePrice, // Default 0 jika tidak ada
+                'current_book_value' => $purchasePrice,
+                'last_depreciation_date' => $receivedDate,
                 'useful_life'      => $row['masa_manfaat_tahun'] ?? 5, // Default 5 jika tidak ada
                 'salvage_value'    => $row['nilai_sisa'] ?? 0, // Default 0 jika tidak ada
 

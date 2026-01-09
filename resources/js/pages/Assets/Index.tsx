@@ -32,6 +32,8 @@ interface Asset {
     inventory_status: string;
     accumulated_depreciation: number;
     book_value: number;
+    current_book_value?: number | null;
+    last_depreciation_date?: string | null;
     is_appreciating: boolean;
 }
 
@@ -97,6 +99,30 @@ export default function Index({ assets, filters }: IndexProps) {
             currency: 'IDR',
             minimumFractionDigits: 0,
         }).format(priceNumber);
+    };
+
+    // Helper: Hitung akumulasi penyusutan (untuk depreciating asset)
+    const getAccumulatedDepreciation = (asset: Asset): number => {
+        const purchasePrice = parseFloat(asset.purchase_price as string);
+        const currentValue = asset.current_book_value ?? asset.book_value ?? purchasePrice;
+
+        if (asset.is_appreciating) {
+            return 0; // Tidak ada penyusutan untuk asset yang appreciating
+        }
+
+        return Math.max(0, purchasePrice - currentValue);
+    };
+
+    // Helper: Hitung akumulasi kenaikan (untuk appreciating asset)
+    const getAccumulatedAppreciation = (asset: Asset): number => {
+        const purchasePrice = parseFloat(asset.purchase_price as string);
+        const currentValue = asset.current_book_value ?? asset.book_value ?? purchasePrice;
+
+        if (!asset.is_appreciating) {
+            return 0; // Tidak ada kenaikan untuk asset yang depreciating
+        }
+
+        return Math.max(0, currentValue - purchasePrice);
     };
 
     function handleImportSubmit(e: React.FormEvent) {
@@ -188,7 +214,8 @@ export default function Index({ assets, filters }: IndexProps) {
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tgl Terima</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Harga Beli</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Akumulasi Penyusutan</th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nilai Buku</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Akumulasi Kenaikan</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Harga Saat Ini</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Merk</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Serial Number</th>
@@ -219,12 +246,16 @@ export default function Index({ assets, filters }: IndexProps) {
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.received_date}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{formatPrice(asset.purchase_price)}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm">
-                                            <span className={asset.is_appreciating ? 'text-green-600' : 'text-red-600'}>
-                                                {asset.is_appreciating ? '📈 +' : '📉 -'}
-                                                {formatPrice(asset.accumulated_depreciation)}
+                                            <span className="text-red-600">
+                                                📉 {formatPrice(getAccumulatedDepreciation(asset))}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{formatPrice(asset.book_value)}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm">
+                                            <span className="text-green-600">
+                                                📈 +{formatPrice(getAccumulatedAppreciation(asset))}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{formatPrice(asset.current_book_value ?? asset.book_value)}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm">
                                             <div className="flex items-center gap-2">
                                                 <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${asset.is_appreciating ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
@@ -250,7 +281,7 @@ export default function Index({ assets, filters }: IndexProps) {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={19} className="px-6 py-12 text-center text-sm text-gray-500">
+                                    <td colSpan={20} className="px-6 py-12 text-center text-sm text-gray-500">
                                         Tidak ada aset yang ditemukan.
                                     </td>
                                 </tr>

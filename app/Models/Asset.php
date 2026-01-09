@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 // PENTING: Import model Rumus yang sudah dibuat
 use App\Models\DepreciationFormula;
+use App\Models\DepreciationHistory;
 
 class Asset extends Model
 {
@@ -16,7 +17,8 @@ class Asset extends Model
 
     protected $fillable = [
         'name', 'room_name', 'asset_code', 'unit_code', 'received_date',
-        'purchase_price', 'useful_life', 'salvage_value', 'type', 'brand',
+        'purchase_price', 'current_book_value', 'last_depreciation_date',
+        'useful_life', 'salvage_value', 'type', 'brand',
         'serial_number', 'quantity', 'status', 'description',
         'user_assigned', 'inventory_status', 'photo',
     ];
@@ -24,8 +26,10 @@ class Asset extends Model
     protected $casts = [
         'purchase_price' => 'float',
         'salvage_value' => 'float',
+        'current_book_value' => 'float',
         'useful_life' => 'integer',
         'received_date' => 'date:Y-m-d',
+        'last_depreciation_date' => 'date:Y-m-d',
     ];
 
     protected $appends = [
