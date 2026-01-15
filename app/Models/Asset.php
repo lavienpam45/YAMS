@@ -16,9 +16,9 @@ class Asset extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'room_name', 'asset_code', 'unit_code', 'received_date',
+        'name', 'room_name', 'location', 'floor', 'asset_code', 'unit_code', 'received_date',
         'purchase_price', 'current_book_value', 'last_depreciation_date',
-        'useful_life', 'salvage_value', 'type', 'brand',
+        'useful_life', 'salvage_value', 'type', 'depreciation_type', 'custom_depreciation_rate', 'brand',
         'serial_number', 'quantity', 'status', 'description',
         'user_assigned', 'inventory_status', 'photo',
     ];
@@ -44,6 +44,12 @@ class Asset extends Model
     {
         return Attribute::make(
             get: function () {
+                // PERUBAHAN: Gunakan field depreciation_type jika ada
+                if (!empty($this->depreciation_type)) {
+                    return $this->depreciation_type === 'appreciation';
+                }
+                
+                // Fallback ke logic lama (untuk data lama yang belum punya depreciation_type)
                 $type = strtolower($this->type ?? '');
                 return str_contains($type, 'tanah') || str_contains($type, 'bangunan');
             }

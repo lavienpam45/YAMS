@@ -30,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
             $this->commands([
                 \App\Console\Commands\RunAssetDepreciation::class,
                 \App\Console\Commands\RecordDepreciationHistory::class,
+                \App\Console\Commands\RecalculateAssetValues::class,
             ]);
         }
 

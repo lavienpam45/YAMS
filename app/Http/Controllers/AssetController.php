@@ -64,6 +64,8 @@ class AssetController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'room_name' => 'nullable|string|max:255',
+            'location' => 'nullable|string|max:255',
+            'floor' => 'nullable|string|max:255',
             'asset_code' => 'nullable|string|max:255', // Tidak perlu unique validation karena akan auto-generate
             'unit_code' => 'nullable|string|max:255',
             'received_date' => 'nullable|date',
@@ -71,6 +73,8 @@ class AssetController extends Controller
             'useful_life' => 'required|integer|min:1',
             'salvage_value' => 'required|numeric|min:0',
             'type' => 'nullable|string|max:255',
+            'depreciation_type' => 'required|in:depreciation,appreciation',
+            'custom_depreciation_rate' => 'nullable|numeric|min:0|max:100',
             'brand' => 'nullable|string|max:255',
             'serial_number' => 'nullable|string|max:255',
             'quantity' => 'required|integer|min:1',
@@ -97,42 +101,53 @@ class AssetController extends Controller
 
             // Jika aset sudah lebih dari 0 tahun (1 hari atau lebih), hitung nilai sekarang
             if ($ageYears > 0) {
-                // Tentukan tipe aset (appreciating atau depreciating)
-                $type = strtolower($validatedData['type'] ?? '');
-                $isAppreciating = str_contains($type, 'tanah') || str_contains($type, 'bangunan');
+                // PERUBAHAN: Gunakan depreciation_type dari input user
+                $isAppreciating = $validatedData['depreciation_type'] === 'appreciation';
 
-                // Ambil rumus aktif
-                $formula = $isAppreciating
-                    ? DepreciationFormula::getActiveAppreciationFormula()
-                    : DepreciationFormula::getActiveDepreciationFormula();
+                $annualChange = null;
 
-                if ($formula) {
-                    // Evaluasi formula dengan variabel
-                    $annualChange = $this->evaluateExpression($formula->expression, [
-                        '{price}' => $validatedData['purchase_price'] ?: 0,
-                        '{salvage}' => $validatedData['salvage_value'] ?: 0,
-                        '{life}' => max(1, $validatedData['useful_life']),
-                        '{age}' => $ageYears,
-                    ]);
+                // CEK: Apakah user menggunakan custom rate atau formula?
+                if (!empty($validatedData['custom_depreciation_rate'])) {
+                    // CUSTOM RATE: Hitung berdasarkan persentase yang diinput user
+                    $customRate = $validatedData['custom_depreciation_rate']; // dalam persen (0-100)
+                    $annualChange = ($validatedData['purchase_price'] * $customRate / 100) * $ageYears;
+                } else {
+                    // FORMULA: Gunakan formula aktif dari database
+                    $formula = $isAppreciating
+                        ? DepreciationFormula::getActiveAppreciationFormula()
+                        : DepreciationFormula::getActiveDepreciationFormula();
 
-                    if ($annualChange !== null) {
-                        $delta = abs($annualChange);
-
-                        if ($isAppreciating) {
-                            $currentBookValue = $validatedData['purchase_price'] + $delta;
-                        } else {
-                            $floor = $validatedData['salvage_value'] ?? 0;
-                            $currentBookValue = max($floor, $validatedData['purchase_price'] - $delta);
-                        }
-
-                        $currentBookValue = round($currentBookValue, 2);
-                        // PENTING: Set last_depreciation_date ke NULL agar scheduler bisa proses
-                        // di anniversary date (received_date + 1 year, 2 years, etc.)
-                        $lastDepreciationDate = null;
-
-                        // Siapkan message notifikasi
-                        $notificationMessage = "Nilai aset '{$validatedData['name']}' telah dihitung berdasarkan umur " . round($ageYears, 2) . " tahun. Nilai saat ini: " . number_format($currentBookValue, 0, ',', '.');
+                    if ($formula) {
+                        // Evaluasi formula dengan variabel
+                        $annualChange = $this->evaluateExpression($formula->expression, [
+                            '{price}' => $validatedData['purchase_price'] ?: 0,
+                            '{salvage}' => $validatedData['salvage_value'] ?: 0,
+                            '{life}' => max(1, $validatedData['useful_life']),
+                            '{age}' => $ageYears,
+                        ]);
                     }
+                }
+
+                if ($annualChange !== null) {
+                    $delta = abs($annualChange);
+
+                    if ($isAppreciating) {
+                        $currentBookValue = $validatedData['purchase_price'] + $delta;
+                    } else {
+                        $floor = $validatedData['salvage_value'] ?? 0;
+                        $currentBookValue = max($floor, $validatedData['purchase_price'] - $delta);
+                    }
+
+                    $currentBookValue = round($currentBookValue, 2);
+                    // PENTING: Set last_depreciation_date ke NULL agar scheduler bisa proses
+                    // di anniversary date (received_date + 1 year, 2 years, etc.)
+                    $lastDepreciationDate = null;
+
+                    // Siapkan message notifikasi
+                    $rateInfo = !empty($validatedData['custom_depreciation_rate']) 
+                        ? " (custom rate: {$validatedData['custom_depreciation_rate']}%)" 
+                        : "";
+                    $notificationMessage = "Nilai aset '{$validatedData['name']}' telah dihitung berdasarkan umur " . round($ageYears, 2) . " tahun{$rateInfo}. Nilai saat ini: " . number_format($currentBookValue, 0, ',', '.');
                 }
             }
         }
@@ -190,12 +205,16 @@ class AssetController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'room_name' => 'nullable|string|max:255',
+            'location' => 'nullable|string|max:255',
+            'floor' => 'nullable|string|max:255',
             'unit_code' => 'nullable|string|max:255',
             'received_date' => 'nullable|date',
             'purchase_price' => 'required|numeric|min:0',
             'useful_life' => 'required|integer|min:1',
             'salvage_value' => 'required|numeric|min:0',
             'type' => 'nullable|string|max:255',
+            'depreciation_type' => 'required|in:depreciation,appreciation',
+            'custom_depreciation_rate' => 'nullable|numeric|min:0|max:100',
             'brand' => 'nullable|string|max:255',
             'serial_number' => 'nullable|string|max:255',
             'quantity' => 'required|integer|min:1',

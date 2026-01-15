@@ -17,6 +17,8 @@ interface Asset {
     id: number;
     photo: string | null;
     room_name: string;
+    location: string;
+    floor: string;
     asset_code: string;
     unit_code: string;
     name: string;
@@ -208,6 +210,8 @@ export default function Index({ assets, filters }: IndexProps) {
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">No</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Foto</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Ruang</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lokasi</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lantai</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kode Aktiva</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kode Satuan</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Barang</th>
@@ -240,6 +244,8 @@ export default function Index({ assets, filters }: IndexProps) {
                                             )}
                                         </td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{asset.room_name}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{asset.location || '-'}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{asset.floor || '-'}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.asset_code}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.unit_code}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{asset.name}</td>

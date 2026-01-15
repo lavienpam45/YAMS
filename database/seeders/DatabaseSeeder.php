@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             AppreciationFormulaSeeder::class,
+            AssetSeeder::class, // Tambahkan AssetSeeder
         ]);
 
         // Buat atau temukan user Super Admin
@@ -36,15 +37,6 @@ class DatabaseSeeder extends Seeder
         if ($superAdminUser && $superAdminRole) {
             $superAdminUser->roles()->syncWithoutDetaching($superAdminRole->id);
         }
-
-        // Reset tabel aset agar ID mulai dari 1 kembali
-        Schema::disableForeignKeyConstraints();
-        Asset::truncate();
-        Schema::enableForeignKeyConstraints();
-
-        // Seed campuran aset depresiasi dan apresiasi
-        Asset::factory()->count(12)->depreciating()->create();
-        Asset::factory()->count(13)->appreciating()->create();
 
         // Pastikan ada rumus penyusutan default yang aktif
         // Aktifkan satu-satunya rumus "Garis Lurus" jika belum ada

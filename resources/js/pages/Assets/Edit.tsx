@@ -14,6 +14,8 @@ interface Asset {
     id: number;
     name: string;
     room_name: string | null;
+    location: string | null;
+    floor: string | null;
     asset_code: string | null;
     unit_code: string | null;
     received_date: string | null;
@@ -21,6 +23,8 @@ interface Asset {
     useful_life: number | null;
     salvage_value: string | null;
     type: string | null;
+    depreciation_type: string | null;
+    custom_depreciation_rate: number | null;
     brand: string | null;
     serial_number: string | null;
     quantity: number;
@@ -36,6 +40,8 @@ export default function Edit({ asset }: { asset: Asset }) {
     const { data, setData, post, processing, errors } = useForm<{
         name: string;
         room_name: string;
+        location: string;
+        floor: string;
         asset_code: string;
         unit_code: string;
         received_date: string;
@@ -43,6 +49,8 @@ export default function Edit({ asset }: { asset: Asset }) {
         useful_life: number;
         salvage_value: string;
         type: string;
+        depreciation_type: string;
+        custom_depreciation_rate: string;
         brand: string;
         serial_number: string;
         quantity: number;
@@ -55,13 +63,17 @@ export default function Edit({ asset }: { asset: Asset }) {
     }>({
         name: asset.name || '',
         room_name: asset.room_name || '',
+        location: asset.location || '',
+        floor: asset.floor || '',
         asset_code: asset.asset_code || '',
         unit_code: asset.unit_code || '',
         received_date: asset.received_date || '',
         purchase_price: asset.purchase_price || '',
         useful_life: asset.useful_life || 5,
         salvage_value: asset.salvage_value || '0',
-        type: asset.type || 'Bangunan',
+        type: asset.type || '',
+        depreciation_type: asset.depreciation_type || 'depreciation',
+        custom_depreciation_rate: asset.custom_depreciation_rate?.toString() || '',
         brand: asset.brand || '',
         serial_number: asset.serial_number || '',
         quantity: asset.quantity || 1,
@@ -72,10 +84,6 @@ export default function Edit({ asset }: { asset: Asset }) {
         photo: null,
         _method: 'put',
     });
-
-    const categories = useMemo(() => (
-        ['Bangunan', 'Elektronik', 'Furniture', 'Kendaraan', 'Tanah', 'Lainnya'].sort()
-    ), []);
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -94,6 +102,16 @@ export default function Edit({ asset }: { asset: Asset }) {
                         <div>
                             <label htmlFor="room_name" className="block text-sm font-medium text-gray-700">Nama Ruang</label>
                             <input type="text" id="room_name" value={data.room_name} onChange={e => setData('room_name', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                        </div>
+                        <div>
+                            <label htmlFor="location" className="block text-sm font-medium text-gray-700">Lokasi</label>
+                            <input type="text" id="location" value={data.location} onChange={e => setData('location', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                        </div>
+                        <div>
+                            <label htmlFor="floor" className="block text-sm font-medium text-gray-700">Lantai</label>
+                            <input type="text" id="floor" value={data.floor} onChange={e => setData('floor', e.target.value)}
                                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
                         </div>
                         <div>
@@ -133,16 +151,48 @@ export default function Edit({ asset }: { asset: Asset }) {
                         </div>
                         <div>
                             <label htmlFor="type" className="block text-sm font-medium text-gray-700">Kategori</label>
-                            <select
-                                id="type"
-                                value={data.type}
+                            <input 
+                                type="text" 
+                                id="type" 
+                                value={data.type} 
                                 onChange={e => setData('type', e.target.value)}
                                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder="Contoh: Bangunan, Elektronik, Furniture"
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="depreciation_type" className="block text-sm font-medium text-gray-700">Tipe Perhitungan <span className="text-red-500">*</span></label>
+                            <select
+                                id="depreciation_type"
+                                value={data.depreciation_type}
+                                onChange={e => setData('depreciation_type', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                required
                             >
-                                {categories.map((cat) => (
-                                    <option key={cat} value={cat}>{cat}</option>
-                                ))}
+                                <option value="depreciation">📉 Penyusutan (Depreciation)</option>
+                                <option value="appreciation">📈 Kenaikan (Appreciation)</option>
                             </select>
+                            <p className="mt-1 text-xs text-gray-500">Pilih apakah nilai aset akan menyusut atau naik seiring waktu</p>
+                        </div>
+                        <div>
+                            <label htmlFor="custom_depreciation_rate" className="block text-sm font-medium text-gray-700">Persentase Custom (Opsional)</label>
+                            <div className="relative mt-1">
+                                <input 
+                                    type="number" 
+                                    id="custom_depreciation_rate" 
+                                    value={data.custom_depreciation_rate} 
+                                    onChange={e => setData('custom_depreciation_rate', e.target.value)}
+                                    className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 pr-12"
+                                    placeholder="5"
+                                    min="0"
+                                    max="100"
+                                    step="0.01"
+                                />
+                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                    <span className="text-gray-500 sm:text-sm">%</span>
+                                </div>
+                            </div>
+                            <p className="mt-1 text-xs text-gray-500">Kosongkan untuk menggunakan rumus dari sistem. Isi jika ingin custom rate.</p>
                         </div>
                         <div>
                             <label htmlFor="brand" className="block text-sm font-medium text-gray-700">Merk</label>

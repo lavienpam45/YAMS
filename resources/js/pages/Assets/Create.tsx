@@ -19,6 +19,8 @@ export default function Create({ nextAssetCode, nextUnitCode }: CreateProps) {
     const { data, setData, post, processing, errors } = useForm<{
         name: string;
         room_name: string;
+        location: string;
+        floor: string;
         asset_code: string;
         unit_code: string;
         received_date: string;
@@ -26,6 +28,8 @@ export default function Create({ nextAssetCode, nextUnitCode }: CreateProps) {
         useful_life: number;
         salvage_value: number;
         type: string;
+        depreciation_type: string;
+        custom_depreciation_rate: string;
         brand: string;
         serial_number: string;
         quantity: number;
@@ -37,13 +41,17 @@ export default function Create({ nextAssetCode, nextUnitCode }: CreateProps) {
     }>({
         name: '',
         room_name: '',
+        location: '',
+        floor: '',
         asset_code: nextAssetCode,
         unit_code: nextUnitCode,
         received_date: '',
         purchase_price: '',
         useful_life: 5,
         salvage_value: 0,
-        type: 'Bangunan',
+        type: '',
+        depreciation_type: 'depreciation',
+        custom_depreciation_rate: '',
         brand: '',
         serial_number: '',
         quantity: 1,
@@ -53,10 +61,6 @@ export default function Create({ nextAssetCode, nextUnitCode }: CreateProps) {
         inventory_status: 'Tercatat',
         photo: null, // Nilai awal untuk file adalah null
     });
-
-    const categories = useMemo(() => (
-        ['Bangunan', 'Elektronik', 'Furniture', 'Kendaraan', 'Tanah', 'Lainnya'].sort()
-    ), []);
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -78,6 +82,20 @@ export default function Create({ nextAssetCode, nextUnitCode }: CreateProps) {
                             <input type="text" id="room_name" value={data.room_name} onChange={(e) => setData('room_name', e.target.value)}
                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
                             {errors.room_name && <div className="mt-1 text-sm text-red-600">{errors.room_name}</div>}
+                        </div>
+
+                        <div>
+                            <label htmlFor="location" className="block text-sm font-medium text-gray-700">Lokasi</label>
+                            <input type="text" id="location" value={data.location} onChange={(e) => setData('location', e.target.value)}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                            {errors.location && <div className="mt-1 text-sm text-red-600">{errors.location}</div>}
+                        </div>
+
+                        <div>
+                            <label htmlFor="floor" className="block text-sm font-medium text-gray-700">Lantai</label>
+                            <input type="text" id="floor" value={data.floor} onChange={(e) => setData('floor', e.target.value)}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                            {errors.floor && <div className="mt-1 text-sm text-red-600">{errors.floor}</div>}
                         </div>
 
                         <div>
@@ -145,16 +163,53 @@ export default function Create({ nextAssetCode, nextUnitCode }: CreateProps) {
 
                         <div>
                             <label htmlFor="type" className="block text-sm font-medium text-gray-700">Kategori</label>
-                            <select
-                                id="type"
-                                value={data.type || categories[0]}
+                            <input 
+                                type="text" 
+                                id="type" 
+                                value={data.type} 
                                 onChange={(e) => setData('type', e.target.value)}
                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                placeholder="Contoh: Bangunan, Elektronik, Furniture"
+                            />
+                            {errors.type && <div className="mt-1 text-sm text-red-600">{errors.type}</div>}
+                        </div>
+
+                        <div>
+                            <label htmlFor="depreciation_type" className="block text-sm font-medium text-gray-700">Tipe Perhitungan <span className="text-red-500">*</span></label>
+                            <select
+                                id="depreciation_type"
+                                value={data.depreciation_type}
+                                onChange={(e) => setData('depreciation_type', e.target.value)}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                required
                             >
-                                {categories.map((cat) => (
-                                    <option key={cat} value={cat}>{cat}</option>
-                                ))}
+                                <option value="depreciation">📉 Penyusutan (Depreciation)</option>
+                                <option value="appreciation">📈 Kenaikan (Appreciation)</option>
                             </select>
+                            <p className="mt-1 text-xs text-gray-500">Pilih apakah nilai aset akan menyusut atau naik seiring waktu</p>
+                            {errors.depreciation_type && <div className="mt-1 text-sm text-red-600">{errors.depreciation_type}</div>}
+                        </div>
+
+                        <div>
+                            <label htmlFor="custom_depreciation_rate" className="block text-sm font-medium text-gray-700">Persentase Custom (Opsional)</label>
+                            <div className="relative mt-1">
+                                <input 
+                                    type="number" 
+                                    id="custom_depreciation_rate" 
+                                    value={data.custom_depreciation_rate} 
+                                    onChange={(e) => setData('custom_depreciation_rate', e.target.value)}
+                                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 pr-12"
+                                    placeholder="5"
+                                    min="0"
+                                    max="100"
+                                    step="0.01"
+                                />
+                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                    <span className="text-gray-500 sm:text-sm">%</span>
+                                </div>
+                            </div>
+                            <p className="mt-1 text-xs text-gray-500">Kosongkan untuk menggunakan rumus dari sistem. Isi jika ingin custom rate.</p>
+                            {errors.custom_depreciation_rate && <div className="mt-1 text-sm text-red-600">{errors.custom_depreciation_rate}</div>}
                         </div>
 
                         <div>

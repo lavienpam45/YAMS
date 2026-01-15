@@ -17,7 +17,10 @@ interface DepreciationHistory {
 
 interface Asset {
     id: number; name: string; photo: string | null; room_name: string;
+    location: string; floor: string;
     asset_code: string; unit_code: string; received_date: string; type: string;
+    depreciation_type: string;
+    custom_depreciation_rate: number | null;
     brand: string; serial_number: string; purchase_price: string;
     useful_life: number; salvage_value: string;
     quantity: number; status: string; description: string | null;
@@ -65,6 +68,8 @@ export default function Show({ asset }: { asset: Asset }) {
                             <DetailItem label="Kode Aktiva" value={asset.asset_code} />
                             <DetailItem label="Kode Satuan" value={asset.unit_code} />
                             <DetailItem label="Nama Ruang / Lokasi" value={asset.room_name} />
+                            <DetailItem label="Lokasi" value={asset.location} />
+                            <DetailItem label="Lantai" value={asset.floor} />
                             <DetailItem label="Pengguna" value={asset.user_assigned} />
                             <DetailItem label="Status Inventaris" value={asset.inventory_status} />
                             <DetailItem label="Kondisi" value={asset.status} />
@@ -72,6 +77,14 @@ export default function Show({ asset }: { asset: Asset }) {
                             <DetailItem label="Jumlah" value={asset.quantity} />
                             <DetailItem label="Merk / Brand" value={asset.brand} />
                             <DetailItem label="Tipe" value={asset.type} />
+                            <DetailItem 
+                                label="Tipe Perhitungan" 
+                                value={asset.depreciation_type === 'appreciation' ? '📈 Kenaikan (Appreciation)' : '📉 Penyusutan (Depreciation)'} 
+                            />
+                            <DetailItem 
+                                label="Persentase Custom" 
+                                value={asset.custom_depreciation_rate ? `${asset.custom_depreciation_rate}% per tahun` : 'Menggunakan rumus sistem'} 
+                            />
                             <DetailItem label="Serial Number" value={asset.serial_number} />
                             <DetailItem label="Keterangan" value={asset.description} />
                         </dl>

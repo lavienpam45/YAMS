@@ -76,21 +76,30 @@ class RunAssetDepreciation extends Command
                     }
 
                     $isAppreciating = $asset->is_appreciating;
-                    $formula = $isAppreciating ? $activeAppreciationFormula : $activeDepreciationFormula;
+                    
+                    // CEK: Apakah aset menggunakan custom rate?
+                    if (!empty($asset->custom_depreciation_rate)) {
+                        // CUSTOM RATE: Hitung berdasarkan persentase custom
+                        $ageYears = $this->calculateAgeInYears($purchaseDate, $today);
+                        $annualChange = ($asset->purchase_price * $asset->custom_depreciation_rate / 100);
+                    } else {
+                        // FORMULA: Gunakan formula aktif dari database
+                        $formula = $isAppreciating ? $activeAppreciationFormula : $activeDepreciationFormula;
 
-                    if (!$formula) {
-                        $this->warn("Tidak ada rumus aktif untuk tipe aset {$asset->type}, aset #{$asset->id} dilewati.");
-                        continue;
+                        if (!$formula) {
+                            $this->warn("Tidak ada rumus aktif untuk tipe aset {$asset->type}, aset #{$asset->id} dilewati.");
+                            continue;
+                        }
+
+                        // Hitung age dengan akurasi desimal untuk perhitungan lebih presisi
+                        $ageYears = $this->calculateAgeInYears($purchaseDate, $today);
+                        $annualChange = $this->evaluateExpression($formula->expression, [
+                            '{price}' => $asset->purchase_price ?: 0,
+                            '{salvage}' => $asset->salvage_value ?: 0,
+                            '{life}' => max(1, $asset->useful_life),
+                            '{age}' => $ageYears,
+                        ]);
                     }
-
-                    // Hitung age dengan akurasi desimal untuk perhitungan lebih presisi
-                    $ageYears = $this->calculateAgeInYears($purchaseDate, $today);
-                    $annualChange = $this->evaluateExpression($formula->expression, [
-                        '{price}' => $asset->purchase_price ?: 0,
-                        '{salvage}' => $asset->salvage_value ?: 0,
-                        '{life}' => max(1, $asset->useful_life),
-                        '{age}' => $ageYears,
-                    ]);
 
                     if ($annualChange === null) {
                         $this->warn("Rumus gagal dievaluasi untuk aset #{$asset->id} ({$asset->name}), dilewati.");
