@@ -76,11 +76,16 @@ class Asset extends Model
     {
         return Attribute::make(
             get: function () {
-                // Check if this is an appreciating asset
-                $type = strtolower($this->type ?? '');
-                $isAppreciating = str_contains($type, 'tanah') || str_contains($type, 'bangunan');
+                // PERBAIKAN: Gunakan depreciation_type field
+                $isAppreciating = $this->is_appreciating;
 
-                // A. Ambil rumus sesuai tipe aset (depreciation atau appreciation)
+                // CEK: Apakah menggunakan custom rate?
+                if (!empty($this->custom_depreciation_rate)) {
+                    // CUSTOM RATE: Hitung berdasarkan persentase
+                    return ($this->purchase_price * $this->custom_depreciation_rate / 100);
+                }
+
+                // FORMULA: A. Ambil rumus sesuai tipe aset (depreciation atau appreciation)
                 $activeFormula = $isAppreciating
                     ? DepreciationFormula::getActiveAppreciationFormula()
                     : DepreciationFormula::getActiveDepreciationFormula();
@@ -119,11 +124,22 @@ class Asset extends Model
         );
     }
 
-    // 3. Akumulasi (Otomatis mengikuti hasil annualDepreciation di atas)
+    // 3. Akumulasi Penyusutan/Kenaikan
     protected function accumulatedDepreciation(): Attribute
     {
         return Attribute::make(
             get: function () {
+                // PERBAIKAN: Gunakan current_book_value jika sudah di-set oleh sistem
+                if ($this->current_book_value !== null) {
+                    // Hitung selisih antara harga beli dan nilai saat ini
+                    $difference = $this->purchase_price - $this->current_book_value;
+                    
+                    // Untuk appreciation (kenaikan), nilai negatif berarti naik
+                    // Untuk depreciation (penyusutan), nilai positif berarti turun
+                    return $difference;
+                }
+                
+                // Fallback untuk aset baru yang belum diproses auto-depreciation
                 // Perhatikan: fungsi ini memanggil annual_depreciation yang sudah dinamis
                 $totalPossibleDepreciation = $this->asset_age_in_years * $this->annual_depreciation;
 
@@ -141,7 +157,17 @@ class Asset extends Model
     protected function bookValue(): Attribute
     {
         return Attribute::make(
-            get: fn () => max(0, $this->purchase_price - $this->accumulated_depreciation)
+            get: function () {
+                // PERBAIKAN: Gunakan current_book_value dari database jika sudah di-set
+                // Ini penting untuk aset appreciation (tanah/bangunan) yang nilainya naik
+                if ($this->current_book_value !== null) {
+                    return $this->current_book_value;
+                }
+                
+                // Fallback untuk aset lama yang belum punya current_book_value
+                // atau aset baru yang belum diproses auto-depreciation
+                return max(0, $this->purchase_price - $this->accumulated_depreciation);
+            }
         );
     }
 }

@@ -108,7 +108,7 @@ class AssetController extends Controller
 
                 // CEK: Apakah user menggunakan custom rate atau formula?
                 if (!empty($validatedData['custom_depreciation_rate'])) {
-                    // CUSTOM RATE: Hitung berdasarkan persentase yang diinput user
+                    // CUSTOM RATE: Hitung total berdasarkan persentase × umur
                     $customRate = $validatedData['custom_depreciation_rate']; // dalam persen (0-100)
                     $annualChange = ($validatedData['purchase_price'] * $customRate / 100) * $ageYears;
                 } else {
@@ -125,6 +125,9 @@ class AssetController extends Controller
                             '{life}' => max(1, $validatedData['useful_life']),
                             '{age}' => $ageYears,
                         ]);
+                        
+                        // Formula sudah menggunakan {age}, jadi hasilnya adalah TOTAL (bukan annual)
+                        // Tidak perlu kalikan lagi dengan age
                     }
                 }
 
@@ -227,6 +230,8 @@ class AssetController extends Controller
 
         $oldValues = $asset->only(array_keys($validatedData));
         $oldReceivedDate = $asset->received_date; // Simpan nilai asli sebelum update
+        $oldDepreciationType = $asset->depreciation_type; // Simpan tipe lama
+        $oldCustomRate = $asset->custom_depreciation_rate; // Simpan custom rate lama
 
         if ($request->hasFile('photo')) {
             // Hapus foto lama jika ada
@@ -240,9 +245,104 @@ class AssetController extends Controller
 
         $asset->update($validatedData);
 
-        // Jika received_date berubah, reset last_depreciation_date agar depresiasi dihitung ulang
+        // PERBAIKAN BUG: Recalculate nilai jika ada perubahan critical
+        $needsRecalculation = false;
+        $recalculationReasons = [];
+
+        // Jika received_date berubah
         if (isset($validatedData['received_date']) && $oldReceivedDate != $validatedData['received_date']) {
             $asset->forceFill(['last_depreciation_date' => null])->save();
+            $needsRecalculation = true;
+            $recalculationReasons[] = 'tanggal terima berubah';
+        }
+
+        // Jika depreciation_type berubah (appreciation <-> depreciation)
+        if (isset($validatedData['depreciation_type']) && $oldDepreciationType != $validatedData['depreciation_type']) {
+            $asset->forceFill(['last_depreciation_date' => null])->save();
+            $needsRecalculation = true;
+            $recalculationReasons[] = 'tipe perhitungan berubah dari ' . ($oldDepreciationType === 'depreciation' ? 'penyusutan' : 'kenaikan') . ' ke ' . ($validatedData['depreciation_type'] === 'depreciation' ? 'penyusutan' : 'kenaikan');
+        }
+
+        // Jika custom_depreciation_rate berubah
+        if ($oldCustomRate != $validatedData['custom_depreciation_rate']) {
+            $needsRecalculation = true;
+            $recalculationReasons[] = 'persentase custom berubah';
+        }
+
+        // Jika purchase_price, useful_life, atau salvage_value berubah
+        if (isset($validatedData['purchase_price']) && $oldValues['purchase_price'] != $validatedData['purchase_price']) {
+            $needsRecalculation = true;
+            $recalculationReasons[] = 'harga beli berubah';
+        }
+
+        if (isset($validatedData['useful_life']) && $oldValues['useful_life'] != $validatedData['useful_life']) {
+            $needsRecalculation = true;
+            $recalculationReasons[] = 'umur manfaat berubah';
+        }
+
+        if (isset($validatedData['salvage_value']) && $oldValues['salvage_value'] != $validatedData['salvage_value']) {
+            $needsRecalculation = true;
+            $recalculationReasons[] = 'nilai sisa berubah';
+        }
+
+        // RECALCULATE current_book_value jika diperlukan
+        if ($needsRecalculation && !empty($asset->received_date)) {
+            $receivedDate = Carbon::parse($asset->received_date)->startOfDay();
+            $today = now()->startOfDay();
+            $ageYears = $this->calculateAgeInYears($receivedDate, $today);
+
+            if ($ageYears > 0) {
+                $isAppreciating = $validatedData['depreciation_type'] === 'appreciation';
+                $annualChange = null;
+
+                // CEK: Custom rate atau formula?
+                if (!empty($validatedData['custom_depreciation_rate'])) {
+                    // CUSTOM RATE
+                    $customRate = $validatedData['custom_depreciation_rate'];
+                    $annualChange = ($validatedData['purchase_price'] * $customRate / 100) * $ageYears;
+                } else {
+                    // FORMULA
+                    $formula = $isAppreciating
+                        ? DepreciationFormula::getActiveAppreciationFormula()
+                        : DepreciationFormula::getActiveDepreciationFormula();
+
+                    if ($formula) {
+                        $annualChange = $this->evaluateExpression($formula->expression, [
+                            '{price}' => $validatedData['purchase_price'] ?: 0,
+                            '{salvage}' => $validatedData['salvage_value'] ?: 0,
+                            '{life}' => max(1, $validatedData['useful_life']),
+                            '{age}' => $ageYears,
+                        ]);
+                    }
+                }
+
+                if ($annualChange !== null) {
+                    $delta = abs($annualChange);
+                    $newValue = 0;
+
+                    if ($isAppreciating) {
+                        $newValue = $validatedData['purchase_price'] + $delta;
+                    } else {
+                        $floor = $validatedData['salvage_value'] ?? 0;
+                        $newValue = max($floor, $validatedData['purchase_price'] - $delta);
+                    }
+
+                    $asset->forceFill(['current_book_value' => round($newValue, 2)])->save();
+
+                    // Kirim notifikasi tambahan tentang recalculation
+                    NotificationService::notifyAdmins(
+                        'Nilai Aset Dihitung Ulang',
+                        "Nilai aset '{$asset->name}' (kode: {$asset->asset_code}) telah dihitung ulang karena: " . implode(', ', $recalculationReasons) . ". Nilai saat ini: " . number_format($newValue, 0, ',', '.'),
+                        'info',
+                        [
+                            'asset_id' => $asset->id,
+                            'asset_code' => $asset->asset_code,
+                            'recalculated_value' => $newValue,
+                            'reasons' => $recalculationReasons,
+                        ]
+                    );
+                }
+            }
         }
 
         // Maintenance untuk data lama yang belum memiliki current_book_value

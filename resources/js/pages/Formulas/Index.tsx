@@ -140,8 +140,8 @@ export default function FormulaIndex({ formulas, variables }: FormulaPageProps) 
                                             onChange={e => setData('type', e.target.value as 'depreciation' | 'appreciation')}
                                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#7ACAB0] focus:ring-[#7ACAB0] sm:text-sm"
                                         >
-                                            <option value="depreciation">Penyusutan (Aset Umum)</option>
-                                            <option value="appreciation">Apresiasi (Tanah & Bangunan)</option>
+                                            <option value="depreciation">Penyusutan</option>
+                                            <option value="appreciation">Apresiasi</option>
                                         </select>
                                     </div>
                                     <div>

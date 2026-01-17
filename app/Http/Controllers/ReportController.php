@@ -28,10 +28,11 @@ class ReportController extends Controller
 
         $categories = Asset::select('type')->distinct()->pluck('type');
 
+        // FIX: Gunakan current_book_value dari database, fallback ke purchase_price jika null
         $summary = [
             'total_assets' => Asset::count(),
             'total_purchase_value' => Asset::sum('purchase_price'),
-            'total_book_value' => Asset::all()->sum('book_value'),
+            'total_book_value' => Asset::selectRaw('SUM(COALESCE(current_book_value, purchase_price)) as total')->value('total') ?? 0,
         ];
 
         return Inertia::render('Reports/Index', [

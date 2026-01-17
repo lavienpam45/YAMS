@@ -94,8 +94,15 @@ export default function Show({ asset }: { asset: Asset }) {
                             <DetailItem label="Harga Beli" value={formatPrice(asset.purchase_price)} />
                             <DetailItem label="Masa Manfaat" value={`${asset.useful_life} Tahun`} />
                             <DetailItem label="Nilai Sisa" value={formatPrice(asset.salvage_value)} />
-                            <DetailItem label="Akumulasi Penyusutan" value={formatPrice(asset.accumulated_depreciation)} />
-                            <DetailItem label="Harga Saat Ini Tersimpan" value={formatPrice(asset.current_book_value ?? asset.book_value)} />
+                            <DetailItem 
+                                label={asset.depreciation_type === 'appreciation' ? 'Akumulasi Kenaikan' : 'Akumulasi Penyusutan'} 
+                                value={
+                                    asset.depreciation_type === 'appreciation' 
+                                        ? formatPrice(Math.abs(asset.accumulated_depreciation)) 
+                                        : formatPrice(asset.accumulated_depreciation)
+                                } 
+                            />
+                            <DetailItem label="Harga Saat Ini" value={formatPrice(asset.current_book_value ?? asset.book_value)} />
                             <DetailItem label="Terakhir Diperbarui" value={asset.last_depreciation_date || asset.received_date || '-'} />
                         </dl>
                     </div>
@@ -103,7 +110,9 @@ export default function Show({ asset }: { asset: Asset }) {
 
                 <div className="bg-white rounded-lg shadow overflow-hidden">
                     <div className="p-6 border-b border-gray-200">
-                        <h3 className="text-xl leading-6 font-bold text-gray-900">Riwayat Penyusutan (History Log)</h3>
+                        <h3 className="text-xl leading-6 font-bold text-gray-900">
+                            {asset.depreciation_type === 'appreciation' ? 'Riwayat Kenaikan (Appreciation History)' : 'Riwayat Penyusutan (Depreciation History)'}
+                        </h3>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="min-w-full">
@@ -111,7 +120,9 @@ export default function Show({ asset }: { asset: Asset }) {
                                 <tr>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Tahun</th>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Harga Awal</th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Penyusutan Tahun Ini</th>
+                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                                        {asset.depreciation_type === 'appreciation' ? 'Kenaikan Tahun Ini' : 'Penyusutan Tahun Ini'}
+                                    </th>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Harga Akhir</th>
                                 </tr>
                             </thead>
@@ -121,14 +132,14 @@ export default function Show({ asset }: { asset: Asset }) {
                                         <tr key={history.id}>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{history.year}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatPrice(history.book_value_start)}</td>
-                                            <td className={`px-6 py-4 whitespace-nowrap text-sm ${parseFloat(history.depreciation_value) < 0 ? 'text-green-600' : 'text-red-600'}`}>{formatChange(history.depreciation_value)}</td>
+                                            <td className={`px-6 py-4 whitespace-nowrap text-sm font-semibold ${parseFloat(history.depreciation_value) < 0 ? 'text-green-600' : 'text-red-600'}`}>{formatChange(history.depreciation_value)}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{formatPrice(history.book_value_end)}</td>
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
                                         <td colSpan={4} className="px-6 py-12 text-center text-sm text-gray-500">
-                                            Belum ada riwayat penyusutan yang dicatat untuk aset ini.
+                                            Belum ada riwayat {asset.depreciation_type === 'appreciation' ? 'kenaikan' : 'penyusutan'} yang dicatat untuk aset ini.
                                         </td>
                                     </tr>
                                 )}

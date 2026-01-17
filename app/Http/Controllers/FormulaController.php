@@ -70,34 +70,29 @@ class FormulaController extends Controller
         // Tentukan apakah ini formula untuk depreciation atau appreciation
         $isDepreciationFormula = $formula->type === 'depreciation';
 
-        // Ambil semua aset yang sesuai dengan tipe formula
+        // PERBAIKAN BUG: Gunakan depreciation_type field, bukan deteksi dari type
         $query = Asset::whereNotNull('received_date');
         
         if ($isDepreciationFormula) {
-            // Untuk depreciation: aset yang BUKAN tanah/bangunan
-            $query->where(function ($q) {
-                $q->where('type', 'not like', '%tanah%')
-                  ->where('type', 'not like', '%bangunan%');
-            });
+            // Untuk depreciation: aset dengan depreciation_type = 'depreciation'
+            $query->where('depreciation_type', 'depreciation');
         } else {
-            // Untuk appreciation: aset tanah/bangunan
-            $query->where(function ($q) {
-                $q->where('type', 'like', '%tanah%')
-                  ->orWhere('type', 'like', '%bangunan%');
-            });
+            // Untuk appreciation: aset dengan depreciation_type = 'appreciation'
+            $query->where('depreciation_type', 'appreciation');
         }
 
         $query->chunkById(100, function ($assets) use ($formula, $today, &$processed) {
             foreach ($assets as $asset) {
                 $receivedDate = Carbon::parse($asset->received_date)->startOfDay();
                 
-                // Skip aset yang belum 1 tahun
-                if ($today->lt($receivedDate->copy()->addYear())) {
-                    continue;
-                }
-
                 // Hitung age dengan presisi
                 $ageYears = $this->calculateAgeInYears($receivedDate, $today);
+                
+                // CEK: Apakah menggunakan custom rate?
+                if (!empty($asset->custom_depreciation_rate)) {
+                    // SKIP: Aset dengan custom rate tidak terpengaruh oleh formula
+                    continue;
+                }
                 
                 // Evaluasi formula baru
                 $annualChange = $this->evaluateExpression($formula->expression, [
@@ -112,14 +107,36 @@ class FormulaController extends Controller
                 }
 
                 $currentValue = $asset->current_book_value ?? $asset->purchase_price;
-                $delta = abs($annualChange);
+                
+                // PERBAIKAN BUG: annualChange adalah ANNUAL rate, bukan total
+                // Kita perlu kalikan dengan age untuk mendapat total
+                // TAPI cek dulu apakah formula sudah pakai {age} atau belum
+                
+                // Cek apakah formula menggunakan variabel {age}
+                $formulaUsesAge = str_contains($formula->expression, '{age}');
                 
                 // Hitung nilai baru
                 if ($asset->is_appreciating) {
-                    $newValue = $asset->purchase_price + $delta;
+                    if ($formulaUsesAge) {
+                        // Formula sudah hitung total (misal: {price} * 0.05 * {age})
+                        // Langsung pakai hasil formula
+                        $newValue = $asset->purchase_price + abs($annualChange);
+                    } else {
+                        // Formula hanya hitung per tahun (misal: {price} * 0.05)
+                        // Kalikan dengan age untuk dapat total
+                        $newValue = $asset->purchase_price + (abs($annualChange) * $ageYears);
+                    }
                 } else {
                     $floor = $asset->salvage_value ?? 0;
-                    $newValue = max($floor, $asset->purchase_price - $delta);
+                    
+                    if ($formulaUsesAge) {
+                        // Formula sudah hitung total depreciation
+                        $newValue = max($floor, $asset->purchase_price - abs($annualChange));
+                    } else {
+                        // Formula hitung per tahun, kalikan dengan age
+                        $totalDepreciation = abs($annualChange) * $ageYears;
+                        $newValue = max($floor, $asset->purchase_price - $totalDepreciation);
+                    }
                 }
 
                 $newValue = round($newValue, 2);
@@ -130,7 +147,10 @@ class FormulaController extends Controller
                 ])->save();
 
                 // Update history
-                $changeSigned = $asset->is_appreciating ? -$delta : $delta;
+                // Hitung delta dari selisih nilai (newValue - currentValue)
+                $changeAmount = $newValue - $currentValue;
+                $changeSigned = $asset->is_appreciating ? -abs($changeAmount) : abs($changeAmount);
+                
                 DepreciationHistory::updateOrCreate(
                     ['asset_id' => $asset->id, 'year' => $today->year],
                     [
