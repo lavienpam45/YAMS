@@ -119,15 +119,26 @@ class AssetController extends Controller
 
                     if ($formula) {
                         // Evaluasi formula dengan variabel
-                        $annualChange = $this->evaluateExpression($formula->expression, [
+                        $formulaResult = $this->evaluateExpression($formula->expression, [
                             '{price}' => $validatedData['purchase_price'] ?: 0,
                             '{salvage}' => $validatedData['salvage_value'] ?: 0,
                             '{life}' => max(1, $validatedData['useful_life']),
                             '{age}' => $ageYears,
                         ]);
-                        
-                        // Formula sudah menggunakan {age}, jadi hasilnya adalah TOTAL (bukan annual)
-                        // Tidak perlu kalikan lagi dengan age
+
+                        // Cek apakah formula menggunakan {age} atau tidak
+                        // Jika formula menggunakan {age}, hasilnya sudah TOTAL
+                        // Jika tidak, hasilnya ANNUAL dan perlu dikali dengan age
+                        $formulaUsesAge = str_contains($formula->expression, '{age}');
+
+                        if ($formulaUsesAge) {
+                            // Formula sudah menghitung total (misal: ({price}-{salvage})/{life}*{age})
+                            $annualChange = $formulaResult;
+                        } else {
+                            // Formula hanya menghitung per tahun (misal: ({price}-{salvage})/{life})
+                            // Kalikan dengan umur aset untuk mendapat total
+                            $annualChange = $formulaResult * $ageYears;
+                        }
                     }
                 }
 
@@ -147,8 +158,8 @@ class AssetController extends Controller
                     $lastDepreciationDate = null;
 
                     // Siapkan message notifikasi
-                    $rateInfo = !empty($validatedData['custom_depreciation_rate']) 
-                        ? " (custom rate: {$validatedData['custom_depreciation_rate']}%)" 
+                    $rateInfo = !empty($validatedData['custom_depreciation_rate'])
+                        ? " (custom rate: {$validatedData['custom_depreciation_rate']}%)"
                         : "";
                     $notificationMessage = "Nilai aset '{$validatedData['name']}' telah dihitung berdasarkan umur " . round($ageYears, 2) . " tahun{$rateInfo}. Nilai saat ini: " . number_format($currentBookValue, 0, ',', '.');
                 }
@@ -490,7 +501,7 @@ class AssetController extends Controller
 
     /**
      * Generate kode sequential dengan prefix (misal: AKT-001, SAT-002)
-     * 
+     *
      * @param string $column Nama kolom (asset_code atau unit_code)
      * @param string $prefix Prefix kode (AKT atau SAT)
      * @return string Kode dengan format PREFIX-XXX (misal: AKT-001)
@@ -501,23 +512,23 @@ class AssetController extends Controller
         $allCodes = Asset::whereNotNull($column)
             ->where($column, 'LIKE', "{$prefix}%")
             ->pluck($column);
-        
+
         // Ekstrak semua angka dari kode-kode yang ada
         $numbers = $allCodes->map(function ($code) {
             // Ekstrak semua angka dari string
             preg_match_all('/\d+/', (string)$code, $matches);
             return !empty($matches[0]) ? (int)end($matches[0]) : 0;
         });
-        
+
         // Cari angka maksimum
         $maxNumber = $numbers->max() ?? 0;
-        
+
         // Angka berikutnya
         $nextNumber = $maxNumber + 1;
-        
+
         // Format dengan padding 3 digit minimum (001, 002, ..., 999, 1000, dst)
         $paddedNumber = str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
-        
+
         // Return dengan format PREFIX-XXX
         return "{$prefix}-{$paddedNumber}";
     }

@@ -1,6 +1,6 @@
 # 🎨 MANUAL PENGEMBANGAN FRONTEND - YAMS
 
-**Yet Another Management System (YAMS)**  
+**YARSI Asset Management System (YAMS)**  
 **Sistem Manajemen Aset & Depresiasi Universitas Yarsi**
 
 ---

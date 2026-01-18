@@ -49,7 +49,7 @@ class RunAssetDepreciation extends Command
                     // Cari anniversary date berikutnya dari received_date
                     $yearsSincePurchase = $purchaseDate->diffInYears($today);
                     $nextAnniversary = $purchaseDate->copy()->addYears($yearsSincePurchase);
-                    
+
                     // Jika hari ini belum sampai anniversary tahun ini, cek anniversary tahun lalu
                     if ($today->lt($nextAnniversary)) {
                         $nextAnniversary = $purchaseDate->copy()->addYears($yearsSincePurchase - 1);
@@ -59,7 +59,7 @@ class RunAssetDepreciation extends Command
                     // 1. Belum pernah diproses (last_depreciation_date = null), ATAU
                     // 2. Hari ini sudah melewati anniversary date yang belum diproses
                     $shouldProcess = false;
-                    
+
                     if ($asset->last_depreciation_date === null) {
                         // Belum pernah diproses, proses sekarang
                         $shouldProcess = true;
@@ -70,18 +70,22 @@ class RunAssetDepreciation extends Command
                             $shouldProcess = true;
                         }
                     }
-                    
+
                     if (!$shouldProcess) {
                         continue;
                     }
 
                     $isAppreciating = $asset->is_appreciating;
-                    
+
+                    // Hitung umur aset dalam tahun (pro-rata)
+                    $ageYears = $this->calculateAgeInYears($purchaseDate, $today);
+                    $totalChange = null;
+
                     // CEK: Apakah aset menggunakan custom rate?
                     if (!empty($asset->custom_depreciation_rate)) {
-                        // CUSTOM RATE: Hitung berdasarkan persentase custom
-                        $ageYears = $this->calculateAgeInYears($purchaseDate, $today);
-                        $annualChange = ($asset->purchase_price * $asset->custom_depreciation_rate / 100);
+                        // CUSTOM RATE: Hitung TOTAL berdasarkan persentase × umur
+                        $annualRate = ($asset->purchase_price * $asset->custom_depreciation_rate / 100);
+                        $totalChange = $annualRate * $ageYears;
                     } else {
                         // FORMULA: Gunakan formula aktif dari database
                         $formula = $isAppreciating ? $activeAppreciationFormula : $activeDepreciationFormula;
@@ -91,38 +95,55 @@ class RunAssetDepreciation extends Command
                             continue;
                         }
 
-                        // Hitung age dengan akurasi desimal untuk perhitungan lebih presisi
-                        $ageYears = $this->calculateAgeInYears($purchaseDate, $today);
-                        $annualChange = $this->evaluateExpression($formula->expression, [
+                        // Evaluasi formula
+                        $formulaResult = $this->evaluateExpression($formula->expression, [
                             '{price}' => $asset->purchase_price ?: 0,
                             '{salvage}' => $asset->salvage_value ?: 0,
                             '{life}' => max(1, $asset->useful_life),
                             '{age}' => $ageYears,
                         ]);
+
+                        // Cek apakah formula menggunakan {age} atau tidak
+                        $formulaUsesAge = str_contains($formula->expression, '{age}');
+
+                        if ($formulaUsesAge) {
+                            // Formula sudah menghitung total
+                            $totalChange = $formulaResult;
+                        } else {
+                            // Formula hanya menghitung per tahun, kalikan dengan umur
+                            $totalChange = $formulaResult * $ageYears;
+                        }
                     }
 
-                    if ($annualChange === null) {
+                    if ($totalChange === null) {
                         $this->warn("Rumus gagal dievaluasi untuk aset #{$asset->id} ({$asset->name}), dilewati.");
                         continue;
                     }
 
-                    $currentValue = $asset->current_book_value ?? $asset->purchase_price;
-                    $delta = abs($annualChange);
+                    // PENTING: Hitung nilai baru dari HARGA BELI (bukan dari current_book_value)
+                    // Ini memastikan nilai selalu akurat berdasarkan umur aset
+                    $previousValue = $asset->current_book_value ?? $asset->purchase_price;
+                    $delta = abs($totalChange);
 
                     if ($isAppreciating) {
-                        $newValue = $currentValue + $delta;
+                        // Appreciation: Harga naik
+                        $newValue = $asset->purchase_price + $delta;
                     } else {
+                        // Depreciation: Harga turun, tapi tidak boleh di bawah nilai sisa
                         $floor = $asset->salvage_value ?? 0;
-                        $newValue = max($floor, $currentValue - $delta);
+                        $newValue = max($floor, $asset->purchase_price - $delta);
                     }
 
                     $newValue = round($newValue, 2);
-                    $changeSigned = $isAppreciating ? -$delta : $delta;
+
+                    // Hitung perubahan dari nilai sebelumnya
+                    $valueChange = $newValue - $previousValue;
+                    $changeSigned = $isAppreciating ? -abs($valueChange) : abs($valueChange);
 
                     DepreciationHistory::updateOrCreate(
                         ['asset_id' => $asset->id, 'year' => $today->year],
                         [
-                            'book_value_start' => $currentValue,
+                            'book_value_start' => $previousValue,
                             'depreciation_value' => $changeSigned,
                             'book_value_end' => $newValue,
                         ]
@@ -134,34 +155,37 @@ class RunAssetDepreciation extends Command
                     ])->save();
 
                     // Kirim notifikasi setiap kali update
+                    $changeType = $isAppreciating ? 'naik' : 'turun';
                     NotificationService::notifyAdmins(
                         'Perhitungan Ulang Nilai Aset (Anniversary)',
-                        "Nilai aset '{$asset->name}' (kode: {$asset->asset_code}) telah dihitung ulang pada anniversary date ({$nextAnniversary->format('d M Y')}). Nilai sebelumnya: " . number_format($currentValue, 0, ',', '.') . ", Nilai saat ini: " . number_format($newValue, 0, ',', '.'),
+                        "Nilai aset '{$asset->name}' (kode: {$asset->asset_code}) telah dihitung ulang pada anniversary date ({$nextAnniversary->format('d M Y')}). Nilai {$changeType} dari Rp " . number_format($previousValue, 0, ',', '.') . " menjadi Rp " . number_format($newValue, 0, ',', '.') . " (umur aset: " . round($ageYears, 1) . " tahun)",
                         'info',
                         [
                             'asset_id' => $asset->id,
                             'asset_code' => $asset->asset_code,
-                            'previous_value' => $currentValue,
+                            'previous_value' => $previousValue,
                             'current_value' => $newValue,
+                            'value_change' => $valueChange,
                             'calculated_on' => $today->toDateString(),
                             'anniversary_date' => $nextAnniversary->toDateString(),
                             'age_years' => round($ageYears, 2),
+                            'depreciation_type' => $isAppreciating ? 'appreciation' : 'depreciation',
                         ]
                     );
 
-                    $this->info("✓ Aset #{$asset->id} ({$asset->name}) - Anniversary {$nextAnniversary->format('d M Y')}: Rp " . number_format($currentValue, 0, ',', '.') . " → Rp " . number_format($newValue, 0, ',', '.'));
+                    $this->info("✓ Aset #{$asset->id} ({$asset->name}) - Anniversary {$nextAnniversary->format('d M Y')}: Rp " . number_format($previousValue, 0, ',', '.') . " → Rp " . number_format($newValue, 0, ',', '.') . " (umur: " . round($ageYears, 1) . " tahun)");
                     $processed++;
                 }
             });
 
         if ($processed > 0) {
             $this->info("✓ Depresiasi otomatis selesai. Total {$processed} aset berhasil diperbarui.");
-            
+
             // Catat di cache bahwa scheduler sudah run hari ini
             Cache::put('depreciation_last_run_' . now()->toDateString(), now(), now()->endOfDay());
         } else {
             $this->info("ℹ Tidak ada aset yang perlu diperbarui hari ini.");
-            
+
             // Tetap catat di cache meskipun tidak ada yang diproses
             Cache::put('depreciation_last_run_' . now()->toDateString(), now(), now()->endOfDay());
         }

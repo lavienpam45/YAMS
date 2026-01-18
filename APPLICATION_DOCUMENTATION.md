@@ -1,6 +1,6 @@
 # 📖 DOKUMENTASI LENGKAP - YAMS
 
-**YAMS - Yet Another Management System**  
+**YAMS - YARSI Asset Management System**  
 **Sistem Manajemen Aset & Depresiasi Otomatis**  
 **Universitas Yarsi**
 
