@@ -37,11 +37,27 @@ export default function LandingNavbar() {
                     {!auth.user && (
                         <>
                             <button
+                                onClick={() => scrollToSection('tentang')}
+                                className="text-sm font-semibold transition-colors relative group"
+                                style={{ color: '#ffffff' }}
+                            >
+                                Tentang
+                                <span className="absolute bottom-0 left-0 w-0 h-0.5 group-hover:w-full transition-all" style={{ backgroundColor: '#ffffff' }}></span>
+                            </button>
+                            <button
                                 onClick={() => scrollToSection('fitur')}
                                 className="text-sm font-semibold transition-colors relative group"
                                 style={{ color: '#ffffff' }}
                             >
                                 Fitur Utama
+                                <span className="absolute bottom-0 left-0 w-0 h-0.5 group-hover:w-full transition-all" style={{ backgroundColor: '#ffffff' }}></span>
+                            </button>
+                            <button
+                                onClick={() => scrollToSection('manfaat')}
+                                className="text-sm font-semibold transition-colors relative group"
+                                style={{ color: '#ffffff' }}
+                            >
+                                Manfaat
                                 <span className="absolute bottom-0 left-0 w-0 h-0.5 group-hover:w-full transition-all" style={{ backgroundColor: '#ffffff' }}></span>
                             </button>
                             <button
@@ -92,7 +108,7 @@ export default function LandingNavbar() {
                         <>
                             <Link href={route('login')}>
                                 <Button size="sm" className="font-bold px-4" style={{ color: '#ffffff', backgroundColor: 'rgba(255,255,255,0.15)' }}>
-                                    Login
+                                    Masuk
                                 </Button>
                             </Link>
                             <Link href={route('register')}>

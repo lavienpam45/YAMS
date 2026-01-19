@@ -76,7 +76,7 @@ export default function Index({ users, activityLogs }: UserIndexProps) {
 
     // Fungsi helper untuk styling label peran (tidak ada perubahan)
     const getRoleLabel = (roles: Role[]) => {
-        if (roles.length === 0) return <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">No Role</span>;
+        if (roles.length === 0) return <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">Tidak Ada Peran</span>;
         const role = roles[0];
         let color = 'bg-blue-100 text-blue-700';
         if (role.name === 'superadmin') color = 'bg-red-100 text-red-700';
@@ -143,7 +143,7 @@ export default function Index({ users, activityLogs }: UserIndexProps) {
                                             {/* --- PERUBAHAN #2: Logika Aksi Disesuaikan --- */}
                                             {isSuperAdmin && !user.roles.find(role => role.name === 'superadmin') ? (
                                                 <>
-                                                    <Link href={route('users.edit', user.id)} className="text-gray-400 hover:text-indigo-600" title="Edit">
+                                                    <Link href={route('users.edit', user.id)} className="text-gray-400 hover:text-indigo-600" title="Ubah">
                                                         <PencilSquareIcon className="w-5 h-5" />
                                                     </Link>
                                                     <button onClick={() => openDeleteModal(user)} className="text-gray-400 hover:text-red-600" title="Hapus">

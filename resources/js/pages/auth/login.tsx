@@ -131,12 +131,12 @@ export default function Login({ status }: { status?: string }) {
 
                         <div className="grid gap-2">
                             <div className="flex items-center">
-                                <Label htmlFor="password">Password</Label>
+                                <Label htmlFor="password">Kata Sandi</Label>
                                 <Link
                                     href={route('password.request')}
                                     className="ml-auto inline-block text-sm underline decoration-slate-400 underline-offset-4 hover:text-primary"
                                 >
-                                    Lupa password?
+                                    Lupa kata sandi?
                                 </Link>
                             </div>
                             <div className="relative">
@@ -179,7 +179,7 @@ export default function Login({ status }: { status?: string }) {
                     <div className="mt-4 text-center text-sm">
                         Belum punya akun?{" "}
                         <Link href={route('register')} className="underline decoration-slate-400 underline-offset-4 hover:text-primary">
-                            Daftar sekarang
+                            Daftar di sini
                         </Link>
                     </div>
 

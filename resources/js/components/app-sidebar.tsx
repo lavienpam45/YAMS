@@ -13,9 +13,8 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, TrendingDown, Calculator } from 'lucide-react';
 import AppLogo from './app-logo';
-import { Calculator} from 'lucide-react'; // Import icon Calculator
 
 const mainNavItems: NavItem[] = [
     {
@@ -26,8 +25,8 @@ const mainNavItems: NavItem[] = [
 
     {
         title: 'Manajemen Rumus',
-        href: '/formulas', // Sesuaikan dengan route name 'formulas.index'
-        icon: Calculator,
+        href: '/formulas',
+        icon: TrendingDown,
     },
     {
         title: 'Kalkulator Aset',

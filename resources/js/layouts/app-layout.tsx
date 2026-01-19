@@ -1,6 +1,6 @@
 import Sidebar from '@/layouts/partials/Sidebar';
 import { type SharedData } from '@/types';
-import { ArchiveBoxIcon, ChartPieIcon, ChevronDownIcon, Cog6ToothIcon, HomeIcon, UsersIcon } from '@heroicons/react/24/outline';
+import { ArchiveBoxIcon, ChartPieIcon, ChevronDownIcon, Cog6ToothIcon, HomeIcon, UsersIcon, Square3Stack3DIcon, ArrowTrendingDownIcon } from '@heroicons/react/24/outline';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import React, { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -64,8 +64,8 @@ export default function AppLayout({ children, title }: AppLayoutProps) {
         { name: 'Manajemen Aset', routeName: 'assets.index', check: 'Assets', icon: ArchiveBoxIcon, allowed: ['superadmin', 'admin'] },
         { name: 'Laporan', routeName: 'reports.index', check: 'Reports', icon: ChartPieIcon, allowed: ['superadmin', 'admin', 'user'] },
         { name: 'Manajemen Pengguna', routeName: 'users.index', check: 'Users', icon: UsersIcon, allowed: ['superadmin'] },
-        { name: 'Manajemen Rumus', routeName: 'formulas.index', check: 'Formulas', icon: UsersIcon, allowed: ['superadmin'] },
-        { name: 'Kalkulator Aset', routeName: 'calculator.index', check: 'Calculator', icon: UsersIcon, allowed: ['superadmin', 'admin'] },
+        { name: 'Manajemen Rumus', routeName: 'formulas.index', check: 'Formulas', icon: ArrowTrendingDownIcon, allowed: ['superadmin'] },
+        { name: 'Kalkulator Aset', routeName: 'calculator.index', check: 'Calculator', icon: Square3Stack3DIcon, allowed: ['superadmin', 'admin'] },
         { name: 'Pengaturan', routeName: 'settings.show', check: 'settings', icon: Cog6ToothIcon, allowed: ['superadmin', 'admin', 'user'] },
     ];
 

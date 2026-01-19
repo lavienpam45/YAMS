@@ -2,7 +2,7 @@ import LandingNavbar from '@/components/landing-navbar';
 import { Button } from '@/components/ui/button';
 import { PageProps } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { Calculator, ChevronDown, Lock, MapPin, ShieldCheck, TrendingUp, Users } from 'lucide-react';
+import { Calculator, ChevronDown, Lock, MapPin, ShieldCheck, TrendingUp, Users, CreditCard as CreditCardIcon, Building2 as BuildingOfficeIcon } from 'lucide-react';
 import { useState } from 'react';
 
 
@@ -19,7 +19,7 @@ export default function Welcome({ auth }: PageProps) {
     const faqItems = [
         {
             question: 'Apa itu YAMS dan bagaimana cara kerjanya?',
-            answer: 'YAMS adalah Yarsi Asset Management System, platform digital terintegrasi untuk mengelola aset universitas. Sistem ini menghitung penyusutan otomatis, melacak lokasi aset real-time, dan menghasilkan laporan akurat untuk kebutuhan audit dan pelaporan keuangan.'
+            answer: 'YAMS adalah Yarsi Asset Management System, platform digital terintegrasi untuk mengelola aset universitas. Sistem ini menghitung penyusutan otomatis, melacak lokasi aset secara waktu nyata, dan menghasilkan laporan akurat untuk kebutuhan audit dan pelaporan keuangan.'
         },
         {
             question: 'Siapa yang bisa menggunakan YAMS?',
@@ -81,7 +81,7 @@ export default function Welcome({ auth }: PageProps) {
 
                                 {/* Subheading */}
                                 <p className="text-lg md:text-xl text-gray-700 mb-8 leading-relaxed max-w-2xl">
-                                    Platform terpadu untuk mengelola aset kampus Universitas Yarsi dengan perhitungan penyusutan otomatis, pelacakan real-time, dan laporan akurat—semua dalam satu sistem yang mudah digunakan.
+                                    Platform terpadu untuk mengelola aset kampus Universitas Yarsi dengan perhitungan penyusutan otomatis, pelacakan waktu nyata, dan laporan akurat—semua dalam satu sistem yang mudah digunakan.
                                 </p>
 
                                 {/* CTA Button */}
@@ -115,6 +115,88 @@ export default function Welcome({ auth }: PageProps) {
                         <div className="absolute top-1/4 right-10 w-72 h-72 bg-green-500/10 rounded-full blur-3xl"></div>
                     </section>
 
+                    {/* 2.5. TENTANG SECTION */}
+                    <section id="tentang" className="py-20 md:py-32 bg-gradient-to-b from-white to-emerald-50 relative" style={{
+                        backgroundImage: `radial-gradient(circle at 20% 50%, rgba(16, 185, 129, 0.06) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(12, 126, 70, 0.05) 0%, transparent 50%)`
+                    }}>
+                        <div className="container mx-auto px-4 md:px-8">
+                            <div className="grid md:grid-cols-2 gap-12 items-center">
+                                {/* Kolom Kiri - Teks */}
+                                <div>
+                                    <div className="inline-block px-4 py-2 rounded-full border-2 mb-6" style={{ borderColor: '#0C7E46', backgroundColor: 'rgba(12, 126, 70, 0.08)' }}>
+                                        <span className="text-sm font-semibold" style={{ color: '#0C7E46' }}>TENTANG YAMS</span>
+                                    </div>
+                                    <h2 className="text-5xl md:text-6xl font-black mb-6 tracking-tight text-gray-900">
+                                        Solusi Manajemen <span style={{ color: '#0C7E46' }}>Aset Terpadu</span>
+                                    </h2>
+                                    <p className="text-lg text-gray-700 mb-6 leading-relaxed">
+                                        YAMS (Yarsi Asset Management System) adalah platform digital terintegrasi yang dirancang khusus untuk memenuhi kebutuhan manajemen aset Universitas Yarsi. Sistem ini menggabungkan teknologi cloud terkini dengan metodologi akuntansi yang telah terbukti.
+                                    </p>
+                                    <p className="text-lg text-gray-700 mb-8 leading-relaxed">
+                                        Dengan YAMS, institusi dapat mengelola aset dengan lebih transparan, akuntabel, dan efisien. Setiap transaksi tercatat dengan detail, penyusutan dihitung secara otomatis, dan laporan finansial dapat dihasilkan dalam hitungan detik.
+                                    </p>
+                                    
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="flex gap-4">
+                                            <div className="flex-shrink-0">
+                                                <ShieldCheck className="h-6 w-6" style={{ color: '#0C7E46' }} />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-gray-900 mb-1">Keamanan Terjamin</h4>
+                                                <p className="text-sm text-gray-600">Enkripsi end-to-end dan backup rutin</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-4">
+                                            <div className="flex-shrink-0">
+                                                <TrendingUp className="h-6 w-6" style={{ color: '#0C7E46' }} />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-gray-900 mb-1">Pertumbuhan Lancar</h4>
+                                                <p className="text-sm text-gray-600">Skalabel untuk ribuan aset</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Kolom Kanan - Visual */}
+                                <div className="relative">
+                                    <div className="bg-white rounded-2xl p-8 border-2 shadow-sm" style={{ borderColor: '#0C7E46' }}>
+                                        <div className="space-y-6">
+                                            <div className="flex items-center gap-4 p-4 rounded-lg" style={{ backgroundColor: 'rgba(12, 126, 70, 0.05)' }}>
+                                                <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(12, 126, 70, 0.1)' }}>
+                                                    <Calculator className="h-6 w-6" style={{ color: '#0C7E46' }} />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-semibold text-gray-900">Perhitungan Akurat</h4>
+                                                    <p className="text-sm text-gray-600">Penyusutan otomatis</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-4 p-4 rounded-lg" style={{ backgroundColor: 'rgba(12, 126, 70, 0.05)' }}>
+                                                <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(12, 126, 70, 0.1)' }}>
+                                                    <Lock className="h-6 w-6" style={{ color: '#0C7E46' }} />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-semibold text-gray-900">Kontrol Penuh</h4>
+                                                    <p className="text-sm text-gray-600">Manajemen pengguna terperinci</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-4 p-4 rounded-lg" style={{ backgroundColor: 'rgba(12, 126, 70, 0.05)' }}>
+                                                <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(12, 126, 70, 0.1)' }}>
+                                                    <MapPin className="h-6 w-6" style={{ color: '#0C7E46' }} />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-semibold text-gray-900">Pelacakan Waktu Nyata</h4>
+                                                    <p className="text-sm text-gray-600">Lokasi aset terupas otomatis</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
                     {/* 3. FEATURES SECTION - MODERN GRID */}
                     <section id="fitur" className="py-20 md:py-32 bg-gradient-to-b from-white to-emerald-50 relative overflow-hidden">
                         <div className="absolute inset-0 opacity-8 bg-gradient-to-b from-green-400 to-transparent"></div>
@@ -126,7 +208,7 @@ export default function Welcome({ auth }: PageProps) {
                                     <span className="text-sm font-semibold" style={{ color: '#0C7E46' }}>KEUNGGULAN YAMS</span>
                                 </div>
                                 <h2 className="text-5xl md:text-6xl font-black mb-4 tracking-tight text-gray-900">
-                                    Fitur yang <span style={{ color: '#0C7E46' }}>Mengubah Permainan</span>
+                                    Fitur <span style={{ color: '#0C7E46' }}>Unggulan</span>
                                 </h2>
                                 <p className="text-xl text-gray-700 max-w-2xl mx-auto">
                                     Teknologi terdepan untuk manajemen aset yang efisien dan terukur
@@ -142,15 +224,15 @@ export default function Welcome({ auth }: PageProps) {
                                             <Calculator className="h-6 w-6" style={{ color: '#0C7E46' }} />
                                         </div>
                                         <div>
-                                            <h3 className="text-2xl font-bold text-gray-900">Penyusutan Otomatis</h3>
-                                            <p className="text-sm font-semibold mt-1" style={{ color: '#0C7E46' }}>Smart Calculation</p>
+                                            <h3 className="text-2xl font-bold text-gray-900">CRUD Aset Lengkap</h3>
+                                            <p className="text-sm font-semibold mt-1" style={{ color: '#0C7E46' }}>Manajemen Aset</p>
                                         </div>
                                     </div>
                                     <p className="text-gray-700 leading-relaxed">
-                                        Algoritma canggih menghitung penurunan nilai aset secara real-time menggunakan rumus akuntansi yang dapat disesuaikan.
+                                        Tambah, lihat, edit, dan hapus aset dengan detail lengkap meliputi informasi dasar, lokasi, data keuangan, status, dan foto aset. Dilengkapi dengan fitur pencarian dan paginasi.
                                     </p>
                                     <div className="mt-4 pt-4 border-t border-gray-200">
-                                        <span style={{ color: '#0C7E46' }} className="text-sm font-semibold">→ Presisi 99.9%</span>
+                                        <span style={{ color: '#0C7E46' }} className="text-sm font-semibold">→ Penuh kendali atas inventori</span>
                                     </div>
                                 </div>
 
@@ -158,18 +240,18 @@ export default function Welcome({ auth }: PageProps) {
                                 <div className="group p-8 rounded-2xl border-2 bg-white shadow-sm hover:shadow-md transition-all duration-300" style={{ borderColor: '#0C7E46' }}>
                                     <div className="flex items-start gap-4 mb-4">
                                         <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(12, 126, 70, 0.1)' }}>
-                                            <MapPin className="h-6 w-6" style={{ color: '#0C7E46' }} />
+                                            <TrendingUp className="h-6 w-6" style={{ color: '#0C7E46' }} />
                                         </div>
                                         <div>
-                                            <h3 className="text-2xl font-bold text-gray-900">Pelacakan Real-time</h3>
-                                            <p className="text-sm font-semibold mt-1" style={{ color: '#0C7E46' }}>Live Tracking</p>
+                                            <h3 className="text-2xl font-bold text-gray-900">Depresiasi/Apresiasi Otomatis</h3>
+                                            <p className="text-sm font-semibold mt-1" style={{ color: '#0C7E46' }}>Sistem Kalkulasi Ganda</p>
                                         </div>
                                     </div>
                                     <p className="text-gray-700 leading-relaxed">
-                                        Pantau lokasi setiap aset, penanggung jawab, dan kondisi fisik secara langsung. Update instan di setiap perubahan.
+                                        Sistem perhitungan ganda untuk akurasi maksimal. Perhitungan saat input aset dan kalkulasi otomatis setiap tanggal peringatan tahunan. Mendukung aset yang menyusut dan meningkat.
                                     </p>
                                     <div className="mt-4 pt-4 border-t border-gray-200">
-                                        <span style={{ color: '#0C7E46' }} className="text-sm font-semibold">→ Update 24/7</span>
+                                        <span style={{ color: '#0C7E46' }} className="text-sm font-semibold">→ Presisi 99.9% otomatis</span>
                                     </div>
                                 </div>
 
@@ -177,18 +259,18 @@ export default function Welcome({ auth }: PageProps) {
                                 <div className="group p-8 rounded-2xl border-2 bg-white shadow-sm hover:shadow-md transition-all duration-300" style={{ borderColor: '#0C7E46' }}>
                                     <div className="flex items-start gap-4 mb-4">
                                         <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(12, 126, 70, 0.1)' }}>
-                                            <TrendingUp className="h-6 w-6" style={{ color: '#0C7E46' }} />
+                                            <MapPin className="h-6 w-6" style={{ color: '#0C7E46' }} />
                                         </div>
                                         <div>
-                                            <h3 className="text-2xl font-bold text-gray-900">Laporan Cerdas</h3>
-                                            <p className="text-sm font-semibold mt-1" style={{ color: '#0C7E46' }}>Advanced Analytics</p>
+                                            <h3 className="text-2xl font-bold text-gray-900">Manajemen Formula Fleksibel</h3>
+                                            <p className="text-sm font-semibold mt-1" style={{ color: '#0C7E46' }}>Rumus Depresiasi Khusus</p>
                                         </div>
                                     </div>
                                     <p className="text-gray-700 leading-relaxed">
-                                        Generate laporan profesional dalam PDF atau Excel dengan visualisasi data yang mudah dipahami untuk stakeholder.
+                                        Buat dan kelola formula depresiasi khusus sesuai kebutuhan akuntansi. Aktifkan/nonaktifkan formula, atur tanggal efektif, dan lihat riwayat semua perubahan rumus.
                                     </p>
                                     <div className="mt-4 pt-4 border-t border-gray-200">
-                                        <span style={{ color: '#0C7E46' }} className="text-sm font-semibold">→ Multi-format Export</span>
+                                        <span style={{ color: '#0C7E46' }} className="text-sm font-semibold">→ Sesuai standar akuntansi</span>
                                     </div>
                                 </div>
 
@@ -199,15 +281,15 @@ export default function Welcome({ auth }: PageProps) {
                                             <Lock className="h-6 w-6" style={{ color: '#0C7E46' }} />
                                         </div>
                                         <div>
-                                            <h3 className="text-2xl font-bold text-gray-900">Keamanan Enterprise</h3>
-                                            <p className="text-sm font-semibold mt-1" style={{ color: '#0C7E46' }}>Military-grade Security</p>
+                                            <h3 className="text-2xl font-bold text-gray-900">Laporan & Ekspor Fleksibel</h3>
+                                            <p className="text-sm font-semibold mt-1" style={{ color: '#0C7E46' }}>Berbagai Format & Dapat Disesuaikan</p>
                                         </div>
                                     </div>
                                     <p className="text-gray-700 leading-relaxed">
-                                        Akses terenkripsi dengan kontrol keamanan berlapis, audit trail lengkap, dan two-factor authentication untuk perlindungan maksimal.
+                                        Hasilkan laporan profesional dalam format PDF atau Excel. Pilih kolom yang ingin ditampilkan, tapis berdasarkan kriteria, dan siap untuk presentasi atau audit.
                                     </p>
                                     <div className="mt-4 pt-4 border-t border-gray-200">
-                                        <span style={{ color: '#0C7E46' }} className="text-sm font-semibold">→ Sistem Keamanan Terpercaya</span>
+                                        <span style={{ color: '#0C7E46' }} className="text-sm font-semibold">→ Data siap untuk audit</span>
                                     </div>
                                 </div>
                             </div>
@@ -278,6 +360,108 @@ export default function Welcome({ auth }: PageProps) {
                                             <p className="text-gray-700 text-sm">Akses terkontrol per departemen dengan audit trail lengkap</p>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* 5.5. USE CASES / MANFAAT SECTION */}
+                    <section id="manfaat" className="py-20 md:py-32 bg-white relative" style={{
+                        backgroundImage: `
+                            radial-gradient(circle at 20% 50%, rgba(16, 185, 129, 0.06) 0%, transparent 50%),
+                            radial-gradient(circle at 80% 80%, rgba(12, 126, 70, 0.08) 0%, transparent 50%)
+                        `
+                    }}>
+                        <div className="container mx-auto px-4 md:px-8">
+                            <div className="mb-16 text-center max-w-3xl mx-auto">
+                                <div className="inline-block px-4 py-2 rounded-full border-2 mb-6" style={{ borderColor: '#0C7E46', backgroundColor: 'rgba(12, 126, 70, 0.08)' }}>
+                                    <span className="text-sm font-semibold" style={{ color: '#0C7E46' }}>MANFAAT UNTUK ANDA</span>
+                                </div>
+                                <h2 className="text-5xl md:text-6xl font-black mb-4 tracking-tight text-gray-900">
+                                    Solusi untuk <span style={{ color: '#0C7E46' }}>Setiap Kebutuhan</span>
+                                </h2>
+                                <p className="text-xl text-gray-700">
+                                    YAMS dirancang untuk berbagai peran dalam organisasi Anda
+                                </p>
+                            </div>
+
+                            <div className="grid md:grid-cols-3 gap-8">
+                                {/* Admin */}
+                                <div className="group p-8 rounded-2xl border-2 bg-white hover:shadow-lg transition-all duration-300" style={{ borderColor: '#0C7E46' }}>
+                                    <div className="p-4 rounded-lg mb-4 w-fit" style={{ backgroundColor: 'rgba(12, 126, 70, 0.1)' }}>
+                                        <Users className="h-8 w-8" style={{ color: '#0C7E46' }} />
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-gray-900 mb-4">Administrator</h3>
+                                    <ul className="space-y-3 text-gray-700">
+                                        <li className="flex gap-3">
+                                            <span style={{ color: '#0C7E46' }} className="font-bold">✓</span>
+                                            <span>Kelola user dan akses dengan mudah</span>
+                                        </li>
+                                        <li className="flex gap-3">
+                                            <span style={{ color: '#0C7E46' }} className="font-bold">✓</span>
+                                            <span>Pantau aktivitas sistem secara waktu nyata</span>
+                                        </li>
+                                        <li className="flex gap-3">
+                                            <span style={{ color: '#0C7E46' }} className="font-bold">✓</span>
+                                            <span>Buat cadangan dan pulihkan data</span>
+                                        </li>
+                                        <li className="flex gap-3">
+                                            <span style={{ color: '#0C7E46' }} className="font-bold">✓</span>
+                                            <span>Audit trail lengkap setiap perubahan</span>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                {/* Bagian Finance */}
+                                <div className="group p-8 rounded-2xl border-2 bg-white hover:shadow-lg transition-all duration-300" style={{ borderColor: '#0C7E46' }}>
+                                    <div className="p-4 rounded-lg mb-4 w-fit" style={{ backgroundColor: 'rgba(12, 126, 70, 0.1)' }}>
+                                        <CreditCardIcon className="h-8 w-8" style={{ color: '#0C7E46' }} />
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-gray-900 mb-4">Keuangan</h3>
+                                    <ul className="space-y-3 text-gray-700">
+                                        <li className="flex gap-3">
+                                            <span style={{ color: '#0C7E46' }} className="font-bold">✓</span>
+                                            <span>Hitung penyusutan secara otomatis dan akurat</span>
+                                        </li>
+                                        <li className="flex gap-3">
+                                            <span style={{ color: '#0C7E46' }} className="font-bold">✓</span>
+                                            <span>Laporan keuangan instan</span>
+                                        </li>
+                                        <li className="flex gap-3">
+                                            <span style={{ color: '#0C7E46' }} className="font-bold">✓</span>
+                                            <span>Data untuk keperluan audit dan kepatuhan</span>
+                                        </li>
+                                        <li className="flex gap-3">
+                                            <span style={{ color: '#0C7E46' }} className="font-bold">✓</span>
+                                            <span>Integrasi dengan sistem akuntansi</span>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                {/* Kepala Departemen */}
+                                <div className="group p-8 rounded-2xl border-2 bg-white hover:shadow-lg transition-all duration-300" style={{ borderColor: '#0C7E46' }}>
+                                    <div className="p-4 rounded-lg mb-4 w-fit" style={{ backgroundColor: 'rgba(12, 126, 70, 0.1)' }}>
+                                        <BuildingOfficeIcon className="h-8 w-8" style={{ color: '#0C7E46' }} />
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-gray-900 mb-4">Kepala Departemen</h3>
+                                    <ul className="space-y-3 text-gray-700">
+                                        <li className="flex gap-3">
+                                            <span style={{ color: '#0C7E46' }} className="font-bold">✓</span>
+                                            <span>Lihat daftar inventaris departemen lengkap</span>
+                                        </li>
+                                        <li className="flex gap-3">
+                                            <span style={{ color: '#0C7E46' }} className="font-bold">✓</span>
+                                            <span>Pantau kondisi aset secara waktu nyata</span>
+                                        </li>
+                                        <li className="flex gap-3">
+                                            <span style={{ color: '#0C7E46' }} className="font-bold">✓</span>
+                                            <span>Siapkan laporan untuk presentasi</span>
+                                        </li>
+                                        <li className="flex gap-3">
+                                            <span style={{ color: '#0C7E46' }} className="font-bold">✓</span>
+                                            <span>Rencana penggantian aset</span>
+                                        </li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
@@ -379,8 +563,8 @@ export default function Welcome({ auth }: PageProps) {
                                 <div className="space-y-4">
                                     <div className="text-5xl md:text-6xl font-black" style={{ color: '#0C7E46' }}>24/7</div>
                                     <div>
-                                        <h4 className="font-bold text-lg text-gray-900 mb-2">Monitoring</h4>
-                                        <p className="text-gray-600 text-sm">Real-time access</p>
+                                        <h4 className="font-bold text-lg text-gray-900 mb-2">Pemantauan</h4>
+                                        <p className="text-gray-600 text-sm">Akses real-time</p>
                                     </div>
                                 </div>
                                 <div className="space-y-4">

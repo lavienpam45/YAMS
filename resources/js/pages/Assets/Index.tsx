@@ -240,7 +240,7 @@ export default function Index({ assets, filters }: IndexProps) {
                                             {asset.photo ? (
                                                 <img src={`/storage/${asset.photo}`} alt={asset.name} className="h-10 w-10 object-cover rounded" />
                                             ) : (
-                                                <div className="flex h-10 w-10 items-center justify-center rounded bg-gray-200 text-xs text-gray-400">No Pic</div>
+                                                <div className="flex h-10 w-10 items-center justify-center rounded bg-gray-200 text-xs text-gray-400">Tidak Ada Foto</div>
                                             )}
                                         </td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{asset.room_name}</td>

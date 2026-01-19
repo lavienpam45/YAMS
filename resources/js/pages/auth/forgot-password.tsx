@@ -54,7 +54,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     radial-gradient(circle at 80% 80%, rgba(12, 126, 70, 0.08) 0%, transparent 50%)
                 `
             }}>
-                <Head title="Lupa Password" />
+                <Head title="Lupa Kata Sandi" />
 
                 <div className="absolute left-4 top-4 lg:hidden">
                      <Link href={route('login')} className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
@@ -64,9 +64,9 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
                 <div className="mx-auto grid w-[350px] gap-6">
                     <div className="grid gap-2 text-center">
-                        <h1 className="text-3xl font-bold">Lupa Password?</h1>
+                        <h1 className="text-3xl font-bold">Lupa Kata Sandi?</h1>
                         <p className="text-balance text-muted-foreground">
-                            Jangan khawatir. Masukkan email Anda dan kami akan mengirimkan link reset password.
+                            Jangan khawatir. Masukkan email Anda dan kami akan mengirimkan tautan untuk mengatur ulang kata sandi.
                         </p>
                     </div>
 
@@ -95,14 +95,14 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
                         <Button type="submit" className="w-full mt-2" disabled={processing}>
                             {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Kirim Link Reset
+                            Kirim Tautan Reset
                         </Button>
                     </form>
 
                     <div className="mt-4 text-center text-sm">
-                        Ingat password Anda?{" "}
+                        Ingat kata sandi Anda?{" "}
                         <Link href={route('login')} className="underline decoration-slate-400 underline-offset-4 hover:text-primary">
-                            Kembali ke Login
+                            Kembali ke Masuk
                         </Link>
                     </div>
                 </div>
