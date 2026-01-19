@@ -19,6 +19,13 @@ class ReportController extends Controller
         if ($request->filled('category') && $request->input('category') !== 'Semua') {
             $assetsQuery->where('type', $request->input('category'));
         }
+        
+        // Filter by year jika ada
+        if ($request->filled('year')) {
+            $year = $request->input('year');
+            $assetsQuery->whereYear('received_date', $year);
+        }
+        
         $sortBy = $request->input('sort_by', 'id');
         $sortOrder = 'asc';
         if (in_array($sortBy, ['id', 'name', 'received_date', 'type', 'room_name'])) {
@@ -37,7 +44,7 @@ class ReportController extends Controller
 
         return Inertia::render('Reports/Index', [
             'assets' => $assets,
-            'filters' => $request->only(['category', 'sort_by']),
+            'filters' => $request->only(['category', 'sort_by', 'year']),
             'categories' => $categories,
             'summary' => $summary,
         ]);
@@ -45,7 +52,7 @@ class ReportController extends Controller
 
     public function exportExcel(Request $request)
     {
-        $filters = $request->only(['category', 'sort_by']);
+        $filters = $request->only(['category', 'sort_by', 'year']);
         return Excel::download(new AssetsExport($filters), 'laporan-aset.xlsx');
     }
 
@@ -56,6 +63,13 @@ class ReportController extends Controller
         if ($request->filled('category') && $request->input('category') !== 'Semua') {
             $assetsQuery->where('type', $request->input('category'));
         }
+        
+        // Filter by year jika ada
+        if ($request->filled('year')) {
+            $year = $request->input('year');
+            $assetsQuery->whereYear('received_date', $year);
+        }
+        
         $sortBy = $request->input('sort_by', 'id');
         if (in_array($sortBy, ['id', 'received_date', 'type', 'room_name'])) {
             $assetsQuery->orderBy($sortBy, 'asc');

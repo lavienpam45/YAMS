@@ -58,7 +58,7 @@ export default function Create({ nextAssetCode, nextUnitCode }: CreateProps) {
         status: 'Baik',
         description: '',
         user_assigned: '',
-        inventory_status: 'Tercatat',
+        inventory_status: '',
         photo: null, // Nilai awal untuk file adalah null
     });
 
@@ -251,9 +251,9 @@ export default function Create({ nextAssetCode, nextUnitCode }: CreateProps) {
                             <label htmlFor="inventory_status" className="block text-sm font-medium text-gray-700">Status Inventaris</label>
                             <select id="inventory_status" value={data.inventory_status} onChange={(e) => setData('inventory_status', e.target.value)}
                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option>Tercatat</option>
-                                <option>Dalam Perbaikan</option>
-                                <option>Hilang</option>
+                                <option value="">-- Pilih Status --</option>
+                                <option value="Yayasan">Yayasan</option>
+                                <option value="Hibah">Hibah</option>
                             </select>
                         </div>
 

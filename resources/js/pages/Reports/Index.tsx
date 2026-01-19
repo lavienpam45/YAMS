@@ -11,7 +11,7 @@ interface Asset { id: number; asset_code: string | null; name: string; type: str
 interface PaginatorLink { url: string | null; label: string; active: boolean; }
 interface ReportProps {
     assets: { data: Asset[]; links: PaginatorLink[]; from: number; };
-    filters: { category: string | null; sort_by: string | null; };
+    filters: { category: string | null; sort_by: string | null; year: string | null; };
     categories: string[];
     summary: { total_assets: number; total_purchase_value: number; total_book_value: number; };
 }
@@ -20,10 +20,14 @@ export default function Index({ assets, filters, categories, summary }: ReportPr
     // --- PERBAIKAN LOGIKA FILTER DAN SORTING ---
     const [category, setCategory] = useState(filters.category || 'Semua');
     const [sortBy, setSortBy] = useState(filters.sort_by || 'id');
+    const [year, setYear] = useState(filters.year || '');
+
+    const currentYear = new Date().getFullYear();
 
     // Gunakan useDebounce untuk nilai-nilai yang akan memicu pencarian ulang
     const [debouncedCategory] = useDebounce(category, 300);
     const [debouncedSortBy] = useDebounce(sortBy, 300);
+    const [debouncedYear] = useDebounce(year, 300);
 
     const isInitialMount = React.useRef(true);
 
@@ -36,6 +40,7 @@ export default function Index({ assets, filters, categories, summary }: ReportPr
         const queryParams: Record<string, string> = {};
         if (debouncedCategory !== 'Semua') queryParams.category = debouncedCategory;
         if (debouncedSortBy !== 'id') queryParams.sort_by = debouncedSortBy;
+        if (debouncedYear !== '') queryParams.year = debouncedYear;
 
         // Kirim request ke server, Inertia akan otomatis menambahkan parameter 'page' jika ada
         router.get(route('reports.index'), queryParams, {
@@ -43,7 +48,7 @@ export default function Index({ assets, filters, categories, summary }: ReportPr
             preserveScroll: true,
             replace: true,
         });
-    }, [debouncedCategory, debouncedSortBy]);
+    }, [debouncedCategory, debouncedSortBy, debouncedYear]);
     // --- AKHIR PERBAIKAN ---
 
     // Fungsi format harga (tidak berubah)
@@ -60,7 +65,7 @@ export default function Index({ assets, filters, categories, summary }: ReportPr
             </div>
 
             <div className="p-6 bg-white rounded-lg shadow border border-gray-100">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-8 gap-4 items-end">
                     <div className="lg:col-span-2">
                         <label className="block text-sm font-medium text-gray-700">Filter Tipe</label>
                         <select value={category} onChange={(e) => setCategory(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#7ACAB0] focus:ring-[#7ACAB0] sm:text-sm">
@@ -77,11 +82,25 @@ export default function Index({ assets, filters, categories, summary }: ReportPr
                             <option value="room_name">Lokasi</option>
                         </select>
                     </div>
+                    <div className="lg:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700">Filter Tahun</label>
+                        <div className="flex gap-2 mt-1">
+                            <input 
+                                type="number" 
+                                value={year} 
+                                onChange={(e) => setYear(e.target.value)} 
+                                min="1900" 
+                                max="2100"
+                                className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-[#7ACAB0] focus:ring-[#7ACAB0] sm:text-sm" 
+                            />
+                            <button onClick={() => setYear('')} className="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-sm font-medium">Hapus</button>
+                        </div>
+                    </div>
                     <div className="lg:col-span-2 flex justify-end space-x-2">
-                         <a href={route('reports.export.excel', { category, sort_by: sortBy })} className="inline-flex items-center justify-center gap-x-2 rounded-md bg-[#7ACAB0] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#5FA18C]">
+                         <a href={route('reports.export.excel', { category, sort_by: sortBy, year })} className="inline-flex items-center justify-center gap-x-2 rounded-md bg-[#7ACAB0] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#5FA18C]">
                              <DocumentArrowDownIcon className="h-5 w-5" /> Export Excel
                          </a>
-                         <a href={route('reports.export.pdf', { category, sort_by: sortBy })} className="inline-flex items-center justify-center gap-x-2 rounded-md bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
+                         <a href={route('reports.export.pdf', { category, sort_by: sortBy, year })} className="inline-flex items-center justify-center gap-x-2 rounded-md bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
                              <DocumentArrowDownIcon className="h-5 w-5" /> Export PDF
                          </a>
                     </div>

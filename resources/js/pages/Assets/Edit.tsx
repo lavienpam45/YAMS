@@ -80,7 +80,7 @@ export default function Edit({ asset }: { asset: Asset }) {
         status: asset.status || 'Baik',
         description: asset.description || '',
         user_assigned: asset.user_assigned || '',
-        inventory_status: asset.inventory_status || 'Tercatat',
+        inventory_status: asset.inventory_status || '',
         photo: null,
         _method: 'put',
     });
@@ -227,9 +227,9 @@ export default function Edit({ asset }: { asset: Asset }) {
                             <label htmlFor="inventory_status" className="block text-sm font-medium text-gray-700">Status Inventaris</label>
                             <select id="inventory_status" value={data.inventory_status} onChange={e => setData('inventory_status', e.target.value)}
                                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                <option>Tercatat</option>
-                                <option>Dalam Perbaikan</option>
-                                <option>Hilang</option>
+                                <option value="">-- Pilih Status --</option>
+                                <option value="Yayasan">Yayasan</option>
+                                <option value="Hibah">Hibah</option>
                             </select>
                         </div>
                         <div className="lg:col-span-3">

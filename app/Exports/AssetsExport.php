@@ -9,12 +9,33 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 
 class AssetsExport implements FromCollection, WithHeadings, WithMapping
 {
+    protected $filters;
+
+    public function __construct($filters = [])
+    {
+        $this->filters = $filters;
+    }
+
     /**
     * @return \Illuminate\Support\Collection
     */
     public function collection()
     {
-        return Asset::all();
+        $query = Asset::query();
+        
+        if (!empty($this->filters['category']) && $this->filters['category'] !== 'Semua') {
+            $query->where('type', $this->filters['category']);
+        }
+        
+        if (!empty($this->filters['sort_by'])) {
+            $query->orderBy($this->filters['sort_by'], 'asc');
+        }
+        
+        if (!empty($this->filters['year'])) {
+            $query->whereYear('received_date', $this->filters['year']);
+        }
+        
+        return $query->get();
     }
 
     /**
