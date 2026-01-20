@@ -40,6 +40,6 @@ class YarsiEmailDomain implements Rule
      */
     public function message()
     {
-        return 'Email harus menggunakan domain Universitas Yarsi (@yarsi.ac.id atau subdomain seperti @students.yarsi.ac.id, @dosen.yarsi.ac.id).';
+        return 'Email harus menggunakan subdomain Universitas Yarsi (@yarsi.ac.id).';
     }
 }

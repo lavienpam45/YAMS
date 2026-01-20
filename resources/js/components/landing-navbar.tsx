@@ -53,14 +53,6 @@ export default function LandingNavbar() {
                                 <span className="absolute bottom-0 left-0 w-0 h-0.5 group-hover:w-full transition-all" style={{ backgroundColor: '#ffffff' }}></span>
                             </button>
                             <button
-                                onClick={() => scrollToSection('manfaat')}
-                                className="text-sm font-semibold transition-colors relative group"
-                                style={{ color: '#ffffff' }}
-                            >
-                                Manfaat
-                                <span className="absolute bottom-0 left-0 w-0 h-0.5 group-hover:w-full transition-all" style={{ backgroundColor: '#ffffff' }}></span>
-                            </button>
-                            <button
                                 onClick={() => scrollToSection('features')}
                                 className="text-sm font-semibold transition-colors relative group"
                                 style={{ color: '#ffffff' }}
@@ -74,6 +66,14 @@ export default function LandingNavbar() {
                                 style={{ color: '#ffffff' }}
                             >
                                 Keamanan
+                                <span className="absolute bottom-0 left-0 w-0 h-0.5 group-hover:w-full transition-all" style={{ backgroundColor: '#ffffff' }}></span>
+                            </button>
+                            <button
+                                onClick={() => scrollToSection('manfaat')}
+                                className="text-sm font-semibold transition-colors relative group"
+                                style={{ color: '#ffffff' }}
+                            >
+                                Manfaat
                                 <span className="absolute bottom-0 left-0 w-0 h-0.5 group-hover:w-full transition-all" style={{ backgroundColor: '#ffffff' }}></span>
                             </button>
                             <button

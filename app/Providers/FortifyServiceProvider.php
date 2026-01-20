@@ -4,9 +4,13 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Models\User;
+use App\Rules\YarsiEmailDomain;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -41,6 +45,32 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
+
+        // Custom authentication dengan validasi domain email Yarsi
+        Fortify::authenticateUsing(function (Request $request) {
+            $user = User::where('email', $request->email)->first();
+
+            // Jika user sudah terdaftar di database, izinkan login (bypass domain check)
+            // Ini untuk mendukung akun test seperti superadmin@yams.test
+            if ($user) {
+                if (Hash::check($request->password, $user->password)) {
+                    return $user;
+                }
+                return null;
+            }
+
+            // Jika user tidak ada di database, validasi domain email
+            $validator = Validator::make($request->only('email'), [
+                'email' => ['required', 'email', new YarsiEmailDomain()],
+            ]);
+
+            if ($validator->fails()) {
+                // Throw validation exception agar pesan error muncul di form
+                throw new \Illuminate\Validation\ValidationException($validator);
+            }
+
+            return null;
+        });
     }
 
     /**
