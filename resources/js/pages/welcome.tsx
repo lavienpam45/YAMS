@@ -2,7 +2,7 @@ import LandingNavbar from '@/components/landing-navbar';
 import { Button } from '@/components/ui/button';
 import { PageProps } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { Calculator, ChevronDown, Lock, MapPin, ShieldCheck, TrendingUp, Users, CreditCard as CreditCardIcon, Building2 as BuildingOfficeIcon } from 'lucide-react';
+import { Calculator, ChevronDown, Lock, MapPin, ShieldCheck, TrendingUp, Users, CreditCard as CreditCardIcon, Building2 as BuildingOfficeIcon, LayoutGrid, FileText } from 'lucide-react';
 import { useState } from 'react';
 
 
@@ -165,29 +165,38 @@ export default function Welcome({ auth }: PageProps) {
                                         <div className="space-y-6">
                                             <div className="flex items-center gap-4 p-4 rounded-lg" style={{ backgroundColor: 'rgba(12, 126, 70, 0.05)' }}>
                                                 <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(12, 126, 70, 0.1)' }}>
+                                                    <LayoutGrid className="h-6 w-6" style={{ color: '#0C7E46' }} />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-semibold text-gray-900">Pemantauan Aset</h4>
+                                                    <p className="text-sm text-gray-600">Lihat data aset secara real-time</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-4 p-4 rounded-lg" style={{ backgroundColor: 'rgba(12, 126, 70, 0.05)' }}>
+                                                <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(12, 126, 70, 0.1)' }}>
+                                                    <TrendingUp className="h-6 w-6" style={{ color: '#0C7E46' }} />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-semibold text-gray-900">Penyusutan Otomatis</h4>
+                                                    <p className="text-sm text-gray-600">Perhitungan akurat setiap tahun</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-4 p-4 rounded-lg" style={{ backgroundColor: 'rgba(12, 126, 70, 0.05)' }}>
+                                                <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(12, 126, 70, 0.1)' }}>
                                                     <Calculator className="h-6 w-6" style={{ color: '#0C7E46' }} />
                                                 </div>
                                                 <div>
-                                                    <h4 className="font-semibold text-gray-900">Perhitungan Akurat</h4>
-                                                    <p className="text-sm text-gray-600">Penyusutan otomatis</p>
+                                                    <h4 className="font-semibold text-gray-900">Kalkulator Aset</h4>
+                                                    <p className="text-sm text-gray-600">Simulasi proyeksi nilai buku</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-4 p-4 rounded-lg" style={{ backgroundColor: 'rgba(12, 126, 70, 0.05)' }}>
                                                 <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(12, 126, 70, 0.1)' }}>
-                                                    <Lock className="h-6 w-6" style={{ color: '#0C7E46' }} />
+                                                    <FileText className="h-6 w-6" style={{ color: '#0C7E46' }} />
                                                 </div>
                                                 <div>
-                                                    <h4 className="font-semibold text-gray-900">Kontrol Penuh</h4>
-                                                    <p className="text-sm text-gray-600">Manajemen pengguna terperinci</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-4 p-4 rounded-lg" style={{ backgroundColor: 'rgba(12, 126, 70, 0.05)' }}>
-                                                <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(12, 126, 70, 0.1)' }}>
-                                                    <MapPin className="h-6 w-6" style={{ color: '#0C7E46' }} />
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-semibold text-gray-900">Pelacakan Waktu Nyata</h4>
-                                                    <p className="text-sm text-gray-600">Lokasi aset terupas otomatis</p>
+                                                    <h4 className="font-semibold text-gray-900">Laporan dan Ekspor</h4>
+                                                    <p className="text-sm text-gray-600">PDF dan Excel siap audit</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -221,18 +230,18 @@ export default function Welcome({ auth }: PageProps) {
                                 <div className="group p-8 rounded-2xl border-2 bg-white shadow-sm hover:shadow-md transition-all duration-300" style={{ borderColor: '#0C7E46' }}>
                                     <div className="flex items-start gap-4 mb-4">
                                         <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(12, 126, 70, 0.1)' }}>
-                                            <Calculator className="h-6 w-6" style={{ color: '#0C7E46' }} />
+                                            <LayoutGrid className="h-6 w-6" style={{ color: '#0C7E46' }} />
                                         </div>
                                         <div>
-                                            <h3 className="text-2xl font-bold text-gray-900">CRUD Aset Lengkap</h3>
-                                            <p className="text-sm font-semibold mt-1" style={{ color: '#0C7E46' }}>Manajemen Aset</p>
+                                            <h3 className="text-2xl font-bold text-gray-900">Pemantauan Aset Real-Time</h3>
+                                            <p className="text-sm font-semibold mt-1" style={{ color: '#0C7E46' }}>Dasbor Aset</p>
                                         </div>
                                     </div>
                                     <p className="text-gray-700 leading-relaxed">
-                                        Tambah, lihat, edit, dan hapus aset dengan detail lengkap meliputi informasi dasar, lokasi, data keuangan, status, dan foto aset. Dilengkapi dengan fitur pencarian dan paginasi.
+                                        Pengguna dapat melihat daftar aset Universitas Yarsi beserta informasi nilai buku, penyusutan, dan statistik aset secara keseluruhan.
                                     </p>
                                     <div className="mt-4 pt-4 border-t border-gray-200">
-                                        <span style={{ color: '#0C7E46' }} className="text-sm font-semibold">→ Penuh kendali atas inventori</span>
+                                        <span style={{ color: '#0C7E46' }} className="text-sm font-semibold">→ Pantau aset kapan saja</span>
                                     </div>
                                 </div>
 
@@ -243,15 +252,15 @@ export default function Welcome({ auth }: PageProps) {
                                             <TrendingUp className="h-6 w-6" style={{ color: '#0C7E46' }} />
                                         </div>
                                         <div>
-                                            <h3 className="text-2xl font-bold text-gray-900">Depresiasi/Apresiasi Otomatis</h3>
-                                            <p className="text-sm font-semibold mt-1" style={{ color: '#0C7E46' }}>Sistem Kalkulasi Ganda</p>
+                                            <h3 className="text-2xl font-bold text-gray-900">Perhitungan Penyusutan Otomatis</h3>
+                                            <p className="text-sm font-semibold mt-1" style={{ color: '#0C7E46' }}>Kalkulasi Akurat</p>
                                         </div>
                                     </div>
                                     <p className="text-gray-700 leading-relaxed">
-                                        Sistem perhitungan ganda untuk akurasi maksimal. Perhitungan saat input aset dan kalkulasi otomatis setiap tanggal peringatan tahunan. Mendukung aset yang menyusut dan meningkat.
+                                        Sistem menghitung penyusutan dan kenaikan nilai aset secara otomatis setiap tahun berdasarkan rumus yang telah dikonfigurasi dengan akurasi tinggi.
                                     </p>
                                     <div className="mt-4 pt-4 border-t border-gray-200">
-                                        <span style={{ color: '#0C7E46' }} className="text-sm font-semibold">→ Presisi 99.9% otomatis</span>
+                                        <span style={{ color: '#0C7E46' }} className="text-sm font-semibold">→ Akurasi tinggi otomatis</span>
                                     </div>
                                 </div>
 
@@ -259,18 +268,18 @@ export default function Welcome({ auth }: PageProps) {
                                 <div className="group p-8 rounded-2xl border-2 bg-white shadow-sm hover:shadow-md transition-all duration-300" style={{ borderColor: '#0C7E46' }}>
                                     <div className="flex items-start gap-4 mb-4">
                                         <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(12, 126, 70, 0.1)' }}>
-                                            <MapPin className="h-6 w-6" style={{ color: '#0C7E46' }} />
+                                            <Calculator className="h-6 w-6" style={{ color: '#0C7E46' }} />
                                         </div>
                                         <div>
-                                            <h3 className="text-2xl font-bold text-gray-900">Manajemen Formula Fleksibel</h3>
-                                            <p className="text-sm font-semibold mt-1" style={{ color: '#0C7E46' }}>Rumus Depresiasi Khusus</p>
+                                            <h3 className="text-2xl font-bold text-gray-900">Kalkulator Aset</h3>
+                                            <p className="text-sm font-semibold mt-1" style={{ color: '#0C7E46' }}>Simulasi Nilai</p>
                                         </div>
                                     </div>
                                     <p className="text-gray-700 leading-relaxed">
-                                        Buat dan kelola formula depresiasi khusus sesuai kebutuhan akuntansi. Aktifkan/nonaktifkan formula, atur tanggal efektif, dan lihat riwayat semua perubahan rumus.
+                                        Fitur simulasi perhitungan nilai aset untuk memproyeksikan nilai buku di masa depan sebelum data dimasukkan ke sistem.
                                     </p>
                                     <div className="mt-4 pt-4 border-t border-gray-200">
-                                        <span style={{ color: '#0C7E46' }} className="text-sm font-semibold">→ Sesuai standar akuntansi</span>
+                                        <span style={{ color: '#0C7E46' }} className="text-sm font-semibold">→ Proyeksi nilai masa depan</span>
                                     </div>
                                 </div>
 
@@ -278,18 +287,18 @@ export default function Welcome({ auth }: PageProps) {
                                 <div className="group p-8 rounded-2xl border-2 bg-white shadow-sm hover:shadow-md transition-all duration-300" style={{ borderColor: '#0C7E46' }}>
                                     <div className="flex items-start gap-4 mb-4">
                                         <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(12, 126, 70, 0.1)' }}>
-                                            <Lock className="h-6 w-6" style={{ color: '#0C7E46' }} />
+                                            <FileText className="h-6 w-6" style={{ color: '#0C7E46' }} />
                                         </div>
                                         <div>
-                                            <h3 className="text-2xl font-bold text-gray-900">Laporan & Ekspor Fleksibel</h3>
-                                            <p className="text-sm font-semibold mt-1" style={{ color: '#0C7E46' }}>Berbagai Format & Dapat Disesuaikan</p>
+                                            <h3 className="text-2xl font-bold text-gray-900">Laporan dan Ekspor Data</h3>
+                                            <p className="text-sm font-semibold mt-1" style={{ color: '#0C7E46' }}>PDF & Excel</p>
                                         </div>
                                     </div>
                                     <p className="text-gray-700 leading-relaxed">
-                                        Hasilkan laporan profesional dalam format PDF atau Excel. Pilih kolom yang ingin ditampilkan, tapis berdasarkan kriteria, dan siap untuk presentasi atau audit.
+                                        Akses cepat untuk menghasilkan laporan dalam format PDF dan Excel yang siap digunakan untuk keperluan audit dan pelaporan keuangan.
                                     </p>
                                     <div className="mt-4 pt-4 border-t border-gray-200">
-                                        <span style={{ color: '#0C7E46' }} className="text-sm font-semibold">→ Data siap untuk audit</span>
+                                        <span style={{ color: '#0C7E46' }} className="text-sm font-semibold">→ Siap untuk audit</span>
                                     </div>
                                 </div>
                             </div>
