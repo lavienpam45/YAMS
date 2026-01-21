@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import Pagination from '@/components/Pagination';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { TrashIcon, PencilSquareIcon, MagnifyingGlassIcon, DocumentArrowUpIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, PencilSquareIcon, MagnifyingGlassIcon, DocumentArrowUpIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 import { route } from 'ziggy-js';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { useDebounce } from 'use-debounce';
@@ -169,11 +169,21 @@ export default function Index({ assets, filters }: IndexProps) {
                 </Link>
             </div>
             <div className="mb-6 p-6 bg-white rounded-lg shadow">
+                <div className="flex items-center justify-between mb-4">
+                    <label htmlFor="import_file" className="block text-sm font-medium leading-6 text-gray-900">Import Data dari File Excel</label>
+                    <a
+                        href={absRoute('assets.download-template')}
+                        className="inline-flex items-center gap-x-1.5 rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+                    >
+                        <DocumentArrowDownIcon className="-ml-0.5 h-5 w-5" />
+                        Download Template Excel
+                    </a>
+                </div>
                 <form onSubmit={handleImportSubmit}>
-                    <label htmlFor="import_file" className="block text-sm font-medium leading-6 text-gray-900">Import Data dari File</label>
                     <div className="mt-2 flex items-center gap-x-3">
                         <input
                             type="file"
+                            accept=".xlsx,.xls"
                             onChange={(e) => setData('file', e.target.files ? e.target.files[0] : null)}
                             className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />
@@ -183,7 +193,16 @@ export default function Index({ assets, filters }: IndexProps) {
                         </button>
                     </div>
                     {errors.file && <p className="mt-2 text-sm text-red-600">{errors.file}</p>}
-                    <p className="mt-2 text-xs text-gray-500">File harus dalam format .xlsx, .xls, atau .csv.</p>
+                    <div className="mt-3 p-3 bg-blue-50 rounded-md border border-blue-200">
+                        <p className="text-sm text-blue-800 font-medium mb-1">💡 Panduan Import:</p>
+                        <ul className="text-xs text-blue-700 space-y-1 ml-4 list-disc">
+                            <li>Download template Excel terlebih dahulu menggunakan tombol di atas</li>
+                            <li>Isi data aset sesuai format template (kolom bertanda * wajib diisi)</li>
+                            <li>Tanggal harus format: YYYY-MM-DD (contoh: 2024-01-15)</li>
+                            <li>Tipe Perhitungan: "depreciation" atau "appreciation"</li>
+                            <li>File harus dalam format .xlsx atau .xls</li>
+                        </ul>
+                    </div>
                 </form>
             </div>
             <div className="mb-4">
@@ -220,7 +239,8 @@ export default function Index({ assets, filters }: IndexProps) {
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Akumulasi Penyusutan</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Akumulasi Kenaikan</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Harga Saat Ini</th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipe Perhitungan</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kategori</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Merk</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Serial Number</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jml</th>
@@ -263,13 +283,11 @@ export default function Index({ assets, filters }: IndexProps) {
                                         </td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{formatPrice(asset.current_book_value ?? asset.book_value)}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm">
-                                            <div className="flex items-center gap-2">
-                                                <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${asset.is_appreciating ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-                                                    {asset.is_appreciating ? '📈 Apresiasi' : '📉 Penyusutan'}
-                                                </span>
-                                                <span className="text-gray-700">{asset.type}</span>
-                                            </div>
+                                            <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${asset.is_appreciating ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                                                {asset.is_appreciating ? '📈 Kenaikan' : '📉 Penyusutan'}
+                                            </span>
                                         </td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700">{asset.type || '-'}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.brand}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.serial_number}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{asset.quantity}</td>

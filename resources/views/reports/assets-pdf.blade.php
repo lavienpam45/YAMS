@@ -60,6 +60,8 @@
                 <th>Ruang</th>
                 <th>Kode</th>
                 <th>Nama Barang</th>
+                <th>Tipe</th>
+                <th>Kategori</th>
                 <th>Tgl Terima</th>
                 <th>Merk</th>
                 <th>Kondisi</th>
@@ -73,6 +75,8 @@
                     <td>{{ $asset->room_name }}</td>
                     <td>{{ $asset->asset_code }}</td>
                     <td>{{ $asset->name }}</td>
+                    <td>{{ $asset->depreciation_type === 'appreciation' ? 'Kenaikan' : 'Penyusutan' }}</td>
+                    <td>{{ $asset->type ?? '-' }}</td>
                     <td>{{ $asset->received_date ? \Carbon\Carbon::parse($asset->received_date)->format('Y-m-d') : '-' }}</td>
                     <td>{{ $asset->brand }}</td>
                     <td>{{ $asset->status }}</td>
@@ -80,7 +84,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" style="text-align: center;">Tidak ada data aset ditemukan.</td>
+                    <td colspan="10" style="text-align: center;">Tidak ada data aset ditemukan.</td>
                 </tr>
             @endforelse
         </tbody>

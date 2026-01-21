@@ -30,6 +30,7 @@ Route::middleware(['auth', 'verified', 'has.role'])->group(function () {
         // Pastikan route 'create' didefinisikan sebelum route 'assets/{asset}'
         // agar URI '/assets/create' tidak tertangkap oleh parameter {asset}.
         Route::get('assets/create', [AssetController::class, 'create'])->name('assets.create');
+        Route::get('assets/download-template', [AssetController::class, 'downloadTemplate'])->name('assets.download-template');
         Route::get('assets/{asset}', [AssetController::class, 'show'])->name('assets.show');
         Route::post('assets', [AssetController::class, 'store'])->name('assets.store');
         Route::get('assets/{asset}/edit', [AssetController::class, 'edit'])->name('assets.edit');

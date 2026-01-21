@@ -7,7 +7,7 @@ import { DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 import { useDebounce } from 'use-debounce'; // Kita akan manfaatkan debounce
 
 // Tipe Data (tidak berubah)
-interface Asset { id: number; asset_code: string | null; name: string; type: string; received_date: string; room_name: string; book_value: number; }
+interface Asset { id: number; asset_code: string | null; name: string; type: string; depreciation_type: string; received_date: string; room_name: string; book_value: number; }
 interface PaginatorLink { url: string | null; label: string; active: boolean; }
 interface ReportProps {
     assets: { data: Asset[]; links: PaginatorLink[]; from: number; };
@@ -67,7 +67,7 @@ export default function Index({ assets, filters, categories, summary }: ReportPr
             <div className="p-6 bg-white rounded-lg shadow border border-gray-100">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-8 gap-4 items-end">
                     <div className="lg:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700">Filter Tipe</label>
+                        <label className="block text-sm font-medium text-gray-700">Filter Kategori</label>
                         <select value={category} onChange={(e) => setCategory(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#7ACAB0] focus:ring-[#7ACAB0] sm:text-sm">
                             <option value="Semua">Semua</option>
                             {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
@@ -85,13 +85,13 @@ export default function Index({ assets, filters, categories, summary }: ReportPr
                     <div className="lg:col-span-2">
                         <label className="block text-sm font-medium text-gray-700">Filter Tahun</label>
                         <div className="flex gap-2 mt-1">
-                            <input 
-                                type="number" 
-                                value={year} 
-                                onChange={(e) => setYear(e.target.value)} 
-                                min="1900" 
+                            <input
+                                type="number"
+                                value={year}
+                                onChange={(e) => setYear(e.target.value)}
+                                min="1900"
                                 max="2100"
-                                className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-[#7ACAB0] focus:ring-[#7ACAB0] sm:text-sm" 
+                                className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-[#7ACAB0] focus:ring-[#7ACAB0] sm:text-sm"
                             />
                             <button onClick={() => setYear('')} className="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-sm font-medium">Hapus</button>
                         </div>
@@ -114,7 +114,8 @@ export default function Index({ assets, filters, categories, summary }: ReportPr
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">ID</th>
                                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Nama Barang</th>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Tipe</th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Tipe Perhitungan</th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Kategori</th>
                                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Tahun</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lokasi</th>
                                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Harga Saat Ini</th>
@@ -125,7 +126,16 @@ export default function Index({ assets, filters, categories, summary }: ReportPr
                                         <tr key={asset.id}>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">ASSET-{asset.id.toString().padStart(3, '0')}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{asset.name}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{asset.type}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                                                    asset.depreciation_type === 'appreciation'
+                                                        ? 'bg-green-100 text-green-800'
+                                                        : 'bg-blue-100 text-blue-800'
+                                                }`}>
+                                                    {asset.depreciation_type === 'appreciation' ? '📈 Kenaikan' : '📉 Penyusutan'}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{asset.type || '-'}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{asset.received_date ? new Date(asset.received_date).getFullYear() : '-'}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{asset.room_name}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{formatPrice(asset.book_value)}</td>

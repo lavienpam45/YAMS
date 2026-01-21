@@ -30,6 +30,11 @@ class RunAssetDepreciation extends Command
     {
         $today = now()->startOfDay();
         $processed = 0;
+        $processedAssets = []; // Collect aset yang diproses untuk summary notification
+
+        // Set cache SEBELUM processing untuk prevent race condition dengan fallback
+        $cacheKey = 'depreciation_last_run_' . $today->toDateString();
+        Cache::put($cacheKey, now(), now()->endOfDay());
 
         $activeDepreciationFormula = DepreciationFormula::getActiveDepreciationFormula();
         $activeAppreciationFormula = DepreciationFormula::getActiveAppreciationFormula();
@@ -37,7 +42,7 @@ class RunAssetDepreciation extends Command
         // Query semua aset yang sudah waktunya untuk diupdate
         Asset::whereNotNull('received_date')
             ->orderBy('id')
-            ->chunkById(200, function ($assets) use ($today, $activeDepreciationFormula, $activeAppreciationFormula, &$processed) {
+            ->chunkById(200, function ($assets) use ($today, $activeDepreciationFormula, $activeAppreciationFormula, &$processed, &$processedAssets) {
                 foreach ($assets as $asset) {
                     $purchaseDate = Carbon::parse($asset->received_date)->startOfDay();
 
@@ -154,24 +159,18 @@ class RunAssetDepreciation extends Command
                         'last_depreciation_date' => $nextAnniversary->toDateString(),
                     ])->save();
 
-                    // Kirim notifikasi setiap kali update
+                    // Collect data untuk summary notification
                     $changeType = $isAppreciating ? 'naik' : 'turun';
-                    NotificationService::notifyAdmins(
-                        'Perhitungan Ulang Nilai Aset (Anniversary)',
-                        "Nilai aset '{$asset->name}' (kode: {$asset->asset_code}) telah dihitung ulang pada anniversary date ({$nextAnniversary->format('d M Y')}). Nilai {$changeType} dari Rp " . number_format($previousValue, 0, ',', '.') . " menjadi Rp " . number_format($newValue, 0, ',', '.') . " (umur aset: " . round($ageYears, 1) . " tahun)",
-                        'info',
-                        [
-                            'asset_id' => $asset->id,
-                            'asset_code' => $asset->asset_code,
-                            'previous_value' => $previousValue,
-                            'current_value' => $newValue,
-                            'value_change' => $valueChange,
-                            'calculated_on' => $today->toDateString(),
-                            'anniversary_date' => $nextAnniversary->toDateString(),
-                            'age_years' => round($ageYears, 2),
-                            'depreciation_type' => $isAppreciating ? 'appreciation' : 'depreciation',
-                        ]
-                    );
+                    $processedAssets[] = [
+                        'id' => $asset->id,
+                        'name' => $asset->name,
+                        'code' => $asset->asset_code,
+                        'previous' => $previousValue,
+                        'current' => $newValue,
+                        'change' => $valueChange,
+                        'type' => $changeType,
+                        'anniversary' => $nextAnniversary->format('d M Y'),
+                    ];
 
                     $this->info("✓ Aset #{$asset->id} ({$asset->name}) - Anniversary {$nextAnniversary->format('d M Y')}: Rp " . number_format($previousValue, 0, ',', '.') . " → Rp " . number_format($newValue, 0, ',', '.') . " (umur: " . round($ageYears, 1) . " tahun)");
                     $processed++;
@@ -181,13 +180,25 @@ class RunAssetDepreciation extends Command
         if ($processed > 0) {
             $this->info("✓ Depresiasi otomatis selesai. Total {$processed} aset berhasil diperbarui.");
 
-            // Catat di cache bahwa scheduler sudah run hari ini
-            Cache::put('depreciation_last_run_' . now()->toDateString(), now(), now()->endOfDay());
+            // Kirim 1 notifikasi summary untuk semua aset yang diproses
+            $assetList = collect($processedAssets)->take(5)->map(function ($asset) {
+                return "• {$asset['name']} ({$asset['code']}): {$asset['type']} Rp " . number_format(abs($asset['change']), 0, ',', '.');
+            })->join("\n");
+
+            $remaining = count($processedAssets) > 5 ? "\n... dan " . (count($processedAssets) - 5) . " aset lainnya" : "";
+
+            NotificationService::notifyAdmins(
+                'Perhitungan Otomatis Nilai Aset Selesai',
+                "Sistem telah menghitung ulang nilai {$processed} aset pada tanggal anniversary mereka (" . $today->format('d M Y') . ").\n\nRingkasan perubahan:\n{$assetList}{$remaining}\n\nSemua perubahan telah dicatat dalam history.",
+                'success',
+                [
+                    'total_processed' => $processed,
+                    'processed_date' => $today->toDateString(),
+                    'assets' => $processedAssets,
+                ]
+            );
         } else {
             $this->info("ℹ Tidak ada aset yang perlu diperbarui hari ini.");
-
-            // Tetap catat di cache meskipun tidak ada yang diproses
-            Cache::put('depreciation_last_run_' . now()->toDateString(), now(), now()->endOfDay());
         }
 
         return Command::SUCCESS;

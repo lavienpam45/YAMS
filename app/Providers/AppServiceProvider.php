@@ -8,6 +8,7 @@ use App\Models\DepreciationHistory;
 use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -54,10 +55,6 @@ class AppServiceProvider extends ServiceProvider
             }
 
             $today = now()->startOfDay();
-            $processed = 0;
-
-            $activeDepreciationFormula = DepreciationFormula::getActiveDepreciationFormula();
-            $activeAppreciationFormula = DepreciationFormula::getActiveAppreciationFormula();
 
             // Cek apakah ada aset yang perlu diproses
             $needsProcessing = Asset::whereNotNull('received_date')
@@ -75,35 +72,62 @@ class AppServiceProvider extends ServiceProvider
                 return;
             }
 
+            // SET CACHE SEBELUM PROCESSING untuk prevent race condition
+            Cache::put($cacheKey, now(), now()->endOfDay());
+
+            $processed = 0;
+            $processedAssets = [];
+            $activeDepreciationFormula = DepreciationFormula::getActiveDepreciationFormula();
+            $activeAppreciationFormula = DepreciationFormula::getActiveAppreciationFormula();
+
             // Ada aset yang perlu diproses, jalankan update
             Asset::whereNotNull('received_date')
                 ->orderBy('id')
-                ->chunkById(100, function ($assets) use ($today, $activeDepreciationFormula, $activeAppreciationFormula, &$processed) {
+                ->chunkById(100, function ($assets) use ($today, $activeDepreciationFormula, $activeAppreciationFormula, &$processed, &$processedAssets) {
                     foreach ($assets as $asset) {
-                        if ($this->processAsset($asset, $today, $activeDepreciationFormula, $activeAppreciationFormula)) {
+                        $result = $this->processAsset($asset, $today, $activeDepreciationFormula, $activeAppreciationFormula);
+                        if ($result) {
+                            $processedAssets[] = $result;
                             $processed++;
                         }
                     }
                 });
 
-            // Catat di cache bahwa sudah run hari ini
-            Cache::put($cacheKey, now(), now()->endOfDay());
-
-            // Log jika ada yang diproses
+            // Log dan kirim notifikasi jika ada yang diproses
             if ($processed > 0) {
-                \Log::info("Fallback depreciation executed: {$processed} assets updated");
+                Log::info("Fallback depreciation executed: {$processed} assets updated");
+
+                // Kirim 1 notifikasi summary
+                $assetList = collect($processedAssets)->take(5)->map(function ($asset) {
+                    return "• {$asset['name']} ({$asset['code']}): {$asset['type']} Rp " . number_format(abs($asset['change']), 0, ',', '.');
+                })->join("\n");
+
+                $remaining = count($processedAssets) > 5 ? "\n... dan " . (count($processedAssets) - 5) . " aset lainnya" : "";
+
+                NotificationService::notifyAdmins(
+                    'Perhitungan Otomatis Nilai Aset (Fallback)',
+                    "Sistem fallback telah menghitung ulang nilai {$processed} aset (" . $today->format('d M Y') . ").\n\nRingkasan perubahan:\n{$assetList}{$remaining}",
+                    'info',
+                    [
+                        'total_processed' => $processed,
+                        'processed_date' => $today->toDateString(),
+                        'mechanism' => 'fallback',
+                        'assets' => $processedAssets,
+                    ]
+                );
             }
 
         } catch (\Exception $e) {
             // Silent fail - tidak ganggu user experience
-            \Log::error('Fallback depreciation error: ' . $e->getMessage());
+            Log::error('Fallback depreciation error: ' . $e->getMessage());
         }
     }
 
     /**
      * Process single asset untuk depreciation/appreciation
+     * Return array dengan data aset jika berhasil, false jika skip
      */
-    private function processAsset($asset, $today, $activeDepreciationFormula, $activeAppreciationFormula): bool
+    private function processAsset(Asset $asset, Carbon $today, $activeDepreciationFormula, $activeAppreciationFormula): array|false
     {
         $purchaseDate = Carbon::parse($asset->received_date)->startOfDay();
 
@@ -216,25 +240,17 @@ class AppServiceProvider extends ServiceProvider
             'last_depreciation_date' => $nextAnniversary->toDateString(),
         ])->save();
 
+        // Return data aset untuk summary notification
         $changeType = $isAppreciating ? 'naik' : 'turun';
-        NotificationService::notifyAdmins(
-            'Perhitungan Ulang Nilai Aset (Auto)',
-            "Nilai aset '{$asset->name}' (kode: {$asset->asset_code}) telah dihitung ulang. Nilai {$changeType} dari Rp " . number_format($previousValue, 0, ',', '.') . " menjadi Rp " . number_format($newValue, 0, ',', '.') . " (umur aset: " . round($ageYears, 1) . " tahun)",
-            'info',
-            [
-                'asset_id' => $asset->id,
-                'asset_code' => $asset->asset_code,
-                'previous_value' => $previousValue,
-                'current_value' => $newValue,
-                'value_change' => $valueChange,
-                'calculated_on' => $today->toDateString(),
-                'anniversary_date' => $nextAnniversary->toDateString(),
-                'age_years' => round($ageYears, 2),
-                'depreciation_type' => $isAppreciating ? 'appreciation' : 'depreciation',
-            ]
-        );
-
-        return true;
+        return [
+            'id' => $asset->id,
+            'name' => $asset->name,
+            'code' => $asset->asset_code,
+            'previous' => $previousValue,
+            'current' => $newValue,
+            'change' => $valueChange,
+            'type' => $changeType,
+        ];
     }
 
     /**

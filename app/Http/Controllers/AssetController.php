@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Imports\AssetsImport;
+use App\Exports\AssetsTemplateExport;
 use App\Models\Asset;
 use App\Models\ActivityLog;
 use App\Models\DepreciationFormula;
@@ -16,6 +17,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage; // Pastikan Storage di-import
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AssetController extends Controller
 {
@@ -560,5 +562,16 @@ class AssetController extends Controller
 
         // Hitung tahun dengan desimal (365.25 hari per tahun untuk account leap years)
         return $totalDays / 365.25;
+    }
+
+    /**
+     * Download template Excel untuk import aset
+     */
+    public function downloadTemplate(): BinaryFileResponse
+    {
+        return Excel::download(
+            new AssetsTemplateExport(),
+            'Template_Import_Aset_YAMS.xlsx'
+        );
     }
 }
