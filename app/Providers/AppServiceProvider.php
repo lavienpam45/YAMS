@@ -35,9 +35,11 @@ class AppServiceProvider extends ServiceProvider
             ]);
         }
 
-        // HYBRID SYSTEM: Fallback auto-depreciation
-        // Hanya jalan jika scheduler belum run hari ini
-        $this->runDepreciationFallback();
+        // FALLBACK SYSTEM DINONAKTIFKAN
+        // Scheduler sudah stabil, fallback tidak diperlukan lagi
+        // Ini menghindari duplikasi notifikasi dan race condition
+        // Jika ingin mengaktifkan kembali, uncomment baris di bawah:
+        // $this->runDepreciationFallback();
     }
 
     /**
