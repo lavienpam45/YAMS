@@ -21,14 +21,11 @@ export default function LandingNavbar() {
             <div className="container mx-auto flex h-16 items-center px-4 md:px-8 justify-between">
                 {/* Bagian Kiri: Logo & Nama Brand */}
                 <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-                    <div className="h-9 w-9 rounded-lg flex items-center justify-center font-black text-lg" style={{ backgroundColor: 'rgba(255,255,255,0.2)', color: '#ffffff' }}>
-                        Y
+                    <div className="h-9 w-9 rounded-lg flex items-center justify-center overflow-hidden bg-white">
+                        <img src="/images/logo-yarsi.png" alt="YAMS Logo" className="h-7 w-7 object-contain" />
                     </div>
-                    <div>
-                        <div className="text-lg font-black tracking-tighter" style={{ color: '#ffffff' }}>
-                            YAMS
-                        </div>
-                        <div className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.9)' }}>Aset Management</div>
+                    <div className="text-lg font-black tracking-tighter" style={{ color: '#ffffff' }}>
+                        YAMS
                     </div>
                 </Link>
 

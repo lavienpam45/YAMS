@@ -32,18 +32,15 @@ export default function Login({ status }: { status?: string }) {
             {/* BAGIAN KIRI (Visual: Gambar Kampus) */}
             <div className="hidden lg:block relative h-full w-full overflow-hidden bg-muted">
 
-                {/* 1. GAMBAR BACKGROUND + EFEK BLUR */}
-                {/* Saya menambahkan class 'blur-[2px]' agar gambar terlihat halus/artistik */}
-                {/* dan 'scale-105' untuk menghindari pinggiran putih akibat blur */}
+                {/* 1. GAMBAR BACKGROUND */}
                 <img
                     src="/images/kampus-yarsi.jpg"
                     alt="Kampus Universitas Yarsi"
-                    className="absolute inset-0 h-full w-full object-cover blur-[2px] scale-105"
+                    className="absolute inset-0 h-full w-full object-cover object-center"
                 />
 
-                {/* 2. OVERLAY GELAP YANG LEBIH PEKAT */}
-                {/* Opacity dinaikkan ke 80% (bg-zinc-900/80) untuk menyamarkan detail yang pecah */}
-                <div className="absolute inset-0 bg-zinc-900/80 mix-blend-multiply" />
+                {/* 2. OVERLAY GELAP */}
+                <div className="absolute inset-0 bg-zinc-900/60 mix-blend-multiply" />
 
                 {/* 3. KONTEN TEKS (Tetap Tajam di Atas Blur) */}
                 <div className="relative z-20 flex h-full flex-col justify-between p-10 text-white">

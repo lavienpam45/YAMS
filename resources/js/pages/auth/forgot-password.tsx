@@ -25,9 +25,9 @@ export default function ForgotPassword({ status }: { status?: string }) {
                 <img
                     src="/images/kampus-yarsi.jpg"
                     alt="Kampus Universitas Yarsi"
-                    className="absolute inset-0 h-full w-full object-cover blur-[2px] scale-105"
+                    className="absolute inset-0 h-full w-full object-cover object-center"
                 />
-                <div className="absolute inset-0 bg-zinc-900/80 mix-blend-multiply" />
+                <div className="absolute inset-0 bg-zinc-900/60 mix-blend-multiply" />
 
                 <div className="relative z-20 flex h-full flex-col justify-between p-10 text-white">
                     <div className="flex items-center text-lg font-medium">

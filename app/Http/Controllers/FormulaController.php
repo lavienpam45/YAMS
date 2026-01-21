@@ -8,6 +8,7 @@ use App\Models\DepreciationHistory;
 use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class FormulaController extends Controller
@@ -72,7 +73,7 @@ class FormulaController extends Controller
 
         // PERBAIKAN BUG: Gunakan depreciation_type field, bukan deteksi dari type
         $query = Asset::whereNotNull('received_date');
-        
+
         if ($isDepreciationFormula) {
             // Untuk depreciation: aset dengan depreciation_type = 'depreciation'
             $query->where('depreciation_type', 'depreciation');
@@ -84,16 +85,16 @@ class FormulaController extends Controller
         $query->chunkById(100, function ($assets) use ($formula, $today, &$processed) {
             foreach ($assets as $asset) {
                 $receivedDate = Carbon::parse($asset->received_date)->startOfDay();
-                
+
                 // Hitung age dengan presisi
                 $ageYears = $this->calculateAgeInYears($receivedDate, $today);
-                
+
                 // CEK: Apakah menggunakan custom rate?
                 if (!empty($asset->custom_depreciation_rate)) {
                     // SKIP: Aset dengan custom rate tidak terpengaruh oleh formula
                     continue;
                 }
-                
+
                 // Evaluasi formula baru
                 $annualChange = $this->evaluateExpression($formula->expression, [
                     '{price}' => $asset->purchase_price ?: 0,
@@ -107,14 +108,14 @@ class FormulaController extends Controller
                 }
 
                 $currentValue = $asset->current_book_value ?? $asset->purchase_price;
-                
+
                 // PERBAIKAN BUG: annualChange adalah ANNUAL rate, bukan total
                 // Kita perlu kalikan dengan age untuk mendapat total
                 // TAPI cek dulu apakah formula sudah pakai {age} atau belum
-                
+
                 // Cek apakah formula menggunakan variabel {age}
                 $formulaUsesAge = str_contains($formula->expression, '{age}');
-                
+
                 // Hitung nilai baru
                 if ($asset->is_appreciating) {
                     if ($formulaUsesAge) {
@@ -128,7 +129,7 @@ class FormulaController extends Controller
                     }
                 } else {
                     $floor = $asset->salvage_value ?? 0;
-                    
+
                     if ($formulaUsesAge) {
                         // Formula sudah hitung total depreciation
                         $newValue = max($floor, $asset->purchase_price - abs($annualChange));
@@ -150,7 +151,7 @@ class FormulaController extends Controller
                 // Hitung delta dari selisih nilai (newValue - currentValue)
                 $changeAmount = $newValue - $currentValue;
                 $changeSigned = $asset->is_appreciating ? -abs($changeAmount) : abs($changeAmount);
-                
+
                 DepreciationHistory::updateOrCreate(
                     ['asset_id' => $asset->id, 'year' => $today->year],
                     [
@@ -180,7 +181,7 @@ class FormulaController extends Controller
             );
         }
 
-        \Log::info("Formula activated: {$formula->name}. {$processed} assets recalculated.");
+        Log::info("Formula activated: {$formula->name}. {$processed} assets recalculated.");
     }
 
     /**
