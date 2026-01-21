@@ -8,7 +8,6 @@ use App\Rules\YarsiEmailDomain;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use Illuminate\Http\Exceptions\HttpResponseException;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
 class CreateNewUser implements CreatesNewUsers
@@ -62,10 +61,7 @@ class CreateNewUser implements CreatesNewUsers
             ]);
         }
 
-
-        // Jangan auto-login, throw redirect ke registration pending page
-        throw new HttpResponseException(
-            redirect('/registration-pending')
-        );
+        // Return user, RegisterResponse akan handle redirect ke login dengan flash message
+        return $user;
     }
 }

@@ -3,7 +3,7 @@
 namespace App\Responses;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 
 class RegisterResponse implements RegisterResponseContract
@@ -15,9 +15,17 @@ class RegisterResponse implements RegisterResponseContract
      */
     public function toResponse($request)
     {
-        // Redirect to pending approval page atau login dengan pesan
+        // Logout user yang baru register (Fortify auto-login setelah register)
+        // Karena user belum diaktifkan oleh admin, mereka tidak boleh langsung masuk
+        Auth::logout();
+
+        // Invalidate session dan regenerate token
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        // Redirect ke halaman login dengan flash message sukses registrasi
         return $request->wantsJson()
-            ? new JsonResponse([], 201)
-            : redirect('/registration-pending');
+            ? new JsonResponse(['message' => 'Registration successful'], 201)
+            : redirect('/login')->with('registration_success', true);
     }
 }

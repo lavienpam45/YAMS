@@ -17,10 +17,6 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('registration-pending', function () {
-    return Inertia::render('auth/registration-pending');
-})->name('registration.pending');
-
 Route::middleware(['auth', 'verified', 'has.role'])->group(function () {
 
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
