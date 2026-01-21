@@ -1,5 +1,5 @@
 import { BellIcon, CheckIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { route } from 'ziggy-js';
 
 interface NotificationData {
@@ -16,7 +16,7 @@ export function NotificationBell() {
     const [notifications, setNotifications] = useState<NotificationData[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
 
-    const loadNotifications = async () => {
+    const loadNotifications = useCallback(async () => {
         try {
             const response = await fetch(route('notifications.index'), {
                 credentials: 'same-origin',
@@ -32,14 +32,33 @@ export function NotificationBell() {
         } catch (error) {
             console.error('Error loading notifications:', error);
         }
-    };
+    }, []);
 
     useEffect(() => {
+        // Load pertama kali
         loadNotifications();
-        // Poll setiap 30 detik
-        const interval = setInterval(loadNotifications, 30000);
-        return () => clearInterval(interval);
-    }, []);
+
+        // Poll setiap 2 detik untuk real-time update
+        const interval = setInterval(loadNotifications, 2000);
+
+        // Juga load ketika tab menjadi aktif kembali
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                loadNotifications();
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        // Juga load ketika window mendapat focus
+        const handleFocus = () => loadNotifications();
+        window.addEventListener('focus', handleFocus);
+
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('focus', handleFocus);
+        };
+    }, [loadNotifications]);
 
     const handleMarkAsRead = async (notificationId: number) => {
         try {

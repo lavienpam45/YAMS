@@ -62,17 +62,6 @@ class CreateNewUser implements CreatesNewUsers
             ]);
         }
 
-        // Kirim notifikasi ke user baru bahwa mereka berhasil mendaftar
-        Notification::create([
-            'user_id' => $user->id,
-            'title' => 'Pendaftaran Berhasil',
-            'message' => 'Akun Anda telah berhasil dibuat. Menunggu persetujuan dari administrator untuk mengaktifkan akses penuh.',
-            'type' => 'registration_success',
-            'is_read' => false,
-            'action_data' => [
-                'user_id' => $user->id,
-            ],
-        ]);
 
         // Jangan auto-login, throw redirect ke registration pending page
         throw new HttpResponseException(

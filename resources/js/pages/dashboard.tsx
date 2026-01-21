@@ -16,10 +16,12 @@ import {
     Chart as ChartJS,
     Legend,
     LinearScale,
+    LineElement,
+    PointElement,
     Title,
     Tooltip,
 } from 'chart.js';
-import { Bar, Pie } from 'react-chartjs-2';
+import { Bar, Line, Pie } from 'react-chartjs-2';
 
 // Daftarkan semua elemen Chart.js yang akan kita gunakan
 ChartJS.register(
@@ -29,6 +31,8 @@ ChartJS.register(
     CategoryScale,
     LinearScale,
     BarElement,
+    LineElement,
+    PointElement,
     Title,
 );
 // ------------------------------------
@@ -60,6 +64,11 @@ interface DashboardProps {
         by_category: Record<string, number>;
         by_location: Record<string, number>;
     };
+    trendData: {
+        labels: string[];
+        depreciation: number[];
+        appreciation: number[];
+    };
 }
 
 function StatCard({
@@ -90,6 +99,7 @@ export default function Dashboard({
     latestAssets,
     summaryData,
     chartData,
+    trendData,
 }: DashboardProps) {
     // Fungsi-fungsi helper (tidak berubah)
     const getStatusColor = (status: string) => {
@@ -167,6 +177,88 @@ export default function Dashboard({
         },
     };
 
+    // Konfigurasi Data untuk Grafik Garis Penyusutan
+    const depreciationLineChartData = {
+        labels: trendData.labels,
+        datasets: [
+            {
+                label: 'Total Nilai Buku Aset Penyusutan (Juta Rp)',
+                data: trendData.depreciation,
+                borderColor: '#EF4444', // Merah
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true,
+                pointRadius: 4,
+                pointBackgroundColor: '#EF4444',
+            },
+        ],
+    };
+
+    // Konfigurasi Data untuk Grafik Garis Kenaikan
+    const appreciationLineChartData = {
+        labels: trendData.labels,
+        datasets: [
+            {
+                label: 'Total Nilai Buku Aset Kenaikan (Juta Rp)',
+                data: trendData.appreciation,
+                borderColor: '#10B981', // Hijau
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true,
+                pointRadius: 4,
+                pointBackgroundColor: '#10B981',
+            },
+        ],
+    };
+
+    // Konfigurasi Tampilan untuk Grafik Garis Penyusutan
+    const depreciationChartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top' as const,
+            },
+        },
+        scales: {
+            x: {
+                grid: { display: false },
+            },
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Juta Rupiah',
+                },
+            },
+        },
+    };
+
+    // Konfigurasi Tampilan untuk Grafik Garis Kenaikan
+    const appreciationChartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top' as const,
+            },
+        },
+        scales: {
+            x: {
+                grid: { display: false },
+            },
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Juta Rupiah',
+                },
+            },
+        },
+    };
+
     return (
         <>
             <h1 className="mb-6 text-2xl font-bold text-gray-800">
@@ -220,6 +312,35 @@ export default function Dashboard({
                     </h2>
                     <div className="relative mt-4 h-80">
                         <Bar options={barChartOptions} data={barChartData} />
+                    </div>
+                </div>
+            </div>
+
+            {/* Grafik Trend Penyusutan dan Kenaikan - 2 Grafik Terpisah */}
+            <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
+                {/* Grafik Penyusutan */}
+                <div className="rounded-lg bg-white p-6 shadow">
+                    <h2 className="text-lg font-semibold text-gray-700 flex items-center gap-2">
+                        <span className="text-red-500">📉</span> Trend Nilai Aset Penyusutan
+                    </h2>
+                    <p className="text-sm text-gray-500 mt-1">
+                        Total nilai buku aset yang mengalami penyusutan
+                    </p>
+                    <div className="relative mt-4 h-64">
+                        <Line options={depreciationChartOptions} data={depreciationLineChartData} />
+                    </div>
+                </div>
+
+                {/* Grafik Kenaikan */}
+                <div className="rounded-lg bg-white p-6 shadow">
+                    <h2 className="text-lg font-semibold text-gray-700 flex items-center gap-2">
+                        <span className="text-green-500">📈</span> Trend Nilai Aset Kenaikan
+                    </h2>
+                    <p className="text-sm text-gray-500 mt-1">
+                        Total nilai buku aset yang mengalami kenaikan (apresiasi)
+                    </p>
+                    <div className="relative mt-4 h-64">
+                        <Line options={appreciationChartOptions} data={appreciationLineChartData} />
                     </div>
                 </div>
             </div>

@@ -101,27 +101,17 @@ class UserController extends Controller
 
     /**
      * Perbarui data pengguna di database.
+     * Super Admin hanya bisa mengubah nama dan role (tidak bisa ubah email/password)
      */
     public function update(Request $request, User $user): RedirectResponse
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            // Pastikan email unik, kecuali untuk email user itu sendiri
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
             'role_id' => 'nullable|exists:roles,id',
-            // Password bersifat opsional, hanya diubah jika diisi
-            'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        // Update nama dan email
+        // Update nama saja (email dan password tidak bisa diubah oleh admin)
         $user->name = $request->name;
-        $user->email = $request->email;
-
-        // Update password jika diisi
-        if ($request->filled('password')) {
-            $user->password = Hash::make($request->password);
-        }
-
         $user->save();
 
         // 'sync' akan menghapus semua peran lama dan menerapkan yang baru
@@ -134,7 +124,7 @@ class UserController extends Controller
 
         $this->logActivity('user.updated', $user, [
             'role' => $request->filled('role_id') ? Role::find($request->role_id)?->name : 'No Role',
-            'changed' => collect($user->getChanges())->only(['name', 'email'])->all(),
+            'changed' => collect($user->getChanges())->only(['name'])->all(),
         ]);
 
         return redirect()->route('users.index')->with('message', 'Pengguna berhasil diperbarui.');
