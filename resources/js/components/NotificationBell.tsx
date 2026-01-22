@@ -1,6 +1,5 @@
-import { BellIcon, CheckIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import React, { useEffect, useState, useCallback } from 'react';
-import { route } from 'ziggy-js';
+import { BellIcon, CheckIcon, TrashIcon } from '@heroicons/react/24/outline';
+import React, { useEffect, useState, useRef } from 'react';
 
 interface NotificationData {
     id: number;
@@ -11,221 +10,247 @@ interface NotificationData {
     created_at: string;
 }
 
+// Fungsi untuk mengambil XSRF token dari cookie (lebih reliable dari meta tag)
+function getXsrfToken(): string {
+    const regex = /XSRF-TOKEN=([^;]+)/;
+    const match = regex.exec(document.cookie);
+    if (match) {
+        return decodeURIComponent(match[1]);
+    }
+    // Fallback ke meta tag
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+}
+
+// Format waktu
+function formatTime(dateStr: string): string {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 1) return 'Baru saja';
+    if (diffMins < 60) return `${diffMins}m lalu`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}j lalu`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}h lalu`;
+}
+
 export function NotificationBell() {
     const [isOpen, setIsOpen] = useState(false);
     const [notifications, setNotifications] = useState<NotificationData[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [actionInProgress, setActionInProgress] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
 
-    const loadNotifications = useCallback(async () => {
+    // Load notifications
+    async function loadNotifications() {
         try {
-            const response = await fetch(route('notifications.index'), {
-                credentials: 'same-origin',
+            const response = await fetch('/notifications', {
+                credentials: 'include',
                 headers: {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
                 },
             });
-            if (!response.ok) throw new Error(`Load failed: ${response.status}`);
-            const data = await response.json();
-            setNotifications(data.notifications);
-            setUnreadCount(data.unread_count);
+            if (response.ok) {
+                const data = await response.json();
+                setNotifications(data.notifications || []);
+                setUnreadCount(data.unread_count || 0);
+            }
         } catch (error) {
             console.error('Error loading notifications:', error);
         }
+    }
+
+    // Click outside to close
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    // Initial load dan polling
     useEffect(() => {
-        // Load pertama kali
         loadNotifications();
+        const interval = setInterval(loadNotifications, 3000);
+        return () => clearInterval(interval);
+    }, []);
 
-        // Poll setiap 2 detik untuk real-time update
-        const interval = setInterval(loadNotifications, 2000);
+    // Mark as read handler
+    async function onMarkAsRead(id: number) {
+        if (actionInProgress) return;
+        setActionInProgress(true);
 
-        // Juga load ketika tab menjadi aktif kembali
-        const handleVisibilityChange = () => {
-            if (document.visibilityState === 'visible') {
-                loadNotifications();
-            }
-        };
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-
-        // Juga load ketika window mendapat focus
-        const handleFocus = () => loadNotifications();
-        window.addEventListener('focus', handleFocus);
-
-        return () => {
-            clearInterval(interval);
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-            window.removeEventListener('focus', handleFocus);
-        };
-    }, [loadNotifications]);
-
-    const handleMarkAsRead = async (notificationId: number) => {
         try {
-            const response = await fetch(route('notifications.mark-as-read', notificationId), {
+            const token = getXsrfToken();
+            
+            const response = await fetch(`/notifications/${id}/mark-as-read`, {
                 method: 'POST',
-                credentials: 'same-origin',
+                credentials: 'include',
                 headers: {
                     'Accept': 'application/json',
+                    'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'X-XSRF-TOKEN': token,
                 },
             });
-            if (!response.ok) throw new Error(`Mark read failed: ${response.status}`);
-            const data = await response.json();
-            setUnreadCount(typeof data.unread_count === 'number' ? data.unread_count : unreadCount);
-            setNotifications((prev) => prev.map((n) => (n.id === notificationId ? { ...n, is_read: true } : n)));
+            
+            if (response.ok) {
+                const data = await response.json();
+                setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+                setUnreadCount(data.unread_count ?? 0);
+            } else {
+                console.error('Failed:', response.status);
+            }
         } catch (error) {
-            console.error('Error marking notification as read:', error);
+            console.error('Error:', error);
+        } finally {
+            setActionInProgress(false);
         }
-    };
+    }
 
-    const handleDelete = async (notificationId: number) => {
+    // Delete handler
+    async function onDelete(id: number) {
+        if (actionInProgress) return;
+        setActionInProgress(true);
+
         try {
-            const target = notifications.find((n) => n.id === notificationId);
-            const response = await fetch(route('notifications.destroy', notificationId), {
+            const token = getXsrfToken();
+            
+            const response = await fetch(`/notifications/${id}`, {
                 method: 'DELETE',
-                credentials: 'same-origin',
+                credentials: 'include',
                 headers: {
                     'Accept': 'application/json',
+                    'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'X-XSRF-TOKEN': token,
                 },
             });
-            if (!response.ok) throw new Error(`Delete failed: ${response.status}`);
-
-            setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
-            if (target && !target.is_read) {
-                setUnreadCount((prev) => Math.max(0, prev - 1));
+            
+            if (response.ok) {
+                const data = await response.json();
+                setNotifications(prev => prev.filter(n => n.id !== id));
+                setUnreadCount(data.unread_count ?? 0);
+            } else {
+                console.error('Failed:', response.status);
             }
         } catch (error) {
-            console.error('Error deleting notification:', error);
+            console.error('Error:', error);
+        } finally {
+            setActionInProgress(false);
         }
-    };
+    }
 
-    const handleMarkAllAsRead = async () => {
+    // Mark all as read handler
+    async function onMarkAllAsRead() {
+        if (actionInProgress) return;
+        setActionInProgress(true);
+
         try {
-            const response = await fetch(route('notifications.mark-all-as-read'), {
+            const token = getXsrfToken();
+            const response = await fetch('/notifications/mark-all-as-read', {
                 method: 'POST',
-                credentials: 'same-origin',
+                credentials: 'include',
                 headers: {
                     'Accept': 'application/json',
+                    'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'X-XSRF-TOKEN': token,
                 },
             });
-            if (!response.ok) throw new Error(`Mark all read failed: ${response.status}`);
-            const data = await response.json();
-            setUnreadCount(typeof data.unread_count === 'number' ? data.unread_count : 0);
-            setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+
+            if (response.ok) {
+                setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+                setUnreadCount(0);
+            } else {
+                console.error('Mark all failed:', response.status);
+            }
         } catch (error) {
-            console.error('Error marking all as read:', error);
+            console.error('Error:', error);
+        } finally {
+            setActionInProgress(false);
         }
-    };
-
-    const getTypeColor = (type: string) => {
-        switch (type) {
-            case 'success':
-                return 'bg-green-50 border-green-200';
-            case 'warning':
-                return 'bg-yellow-50 border-yellow-200';
-            case 'error':
-                return 'bg-red-50 border-red-200';
-            default:
-                return 'bg-blue-50 border-blue-200';
-        }
-    };
-
-    const getTypeTextColor = (type: string) => {
-        switch (type) {
-            case 'success':
-                return 'text-green-700';
-            case 'warning':
-                return 'text-yellow-700';
-            case 'error':
-                return 'text-red-700';
-            default:
-                return 'text-blue-700';
-        }
-    };
-
-    const formatTime = (dateStr: string) => {
-        const date = new Date(dateStr);
-        const now = new Date();
-        const diffMs = now.getTime() - date.getTime();
-        const diffMins = Math.floor(diffMs / 60000);
-
-        if (diffMins < 1) return 'Baru saja';
-        if (diffMins < 60) return `${diffMins}m yang lalu`;
-        const diffHours = Math.floor(diffMins / 60);
-        if (diffHours < 24) return `${diffHours}h yang lalu`;
-        const diffDays = Math.floor(diffHours / 24);
-        return `${diffDays}d yang lalu`;
-    };
+    }
 
     return (
-        <div className="relative">
+        <div ref={containerRef} className="relative">
+            {/* Bell Button */}
             <button
-                onClick={() => setIsOpen(!isOpen)}
+                type="button"
+                onClick={() => setIsOpen(prev => !prev)}
                 className="relative p-2 rounded-lg hover:bg-gray-100 transition"
             >
                 <BellIcon className="h-6 w-6 text-gray-600" />
                 {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+                    <span className="absolute top-1 right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-bold text-white bg-red-600 rounded-full transform translate-x-1/2 -translate-y-1/2">
                         {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                 )}
             </button>
 
+            {/* Dropdown */}
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-96 overflow-y-auto">
-                    <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center">
+                <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+                    {/* Header */}
+                    <div className="p-4 border-b border-gray-200 flex justify-between items-center">
                         <h3 className="font-semibold text-gray-800">Notifikasi</h3>
                         {unreadCount > 0 && (
                             <button
-                                onClick={handleMarkAllAsRead}
-                                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                                type="button"
+                                onClick={() => onMarkAllAsRead()}
+                                disabled={actionInProgress}
+                                className="text-xs text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50"
                             >
                                 Tandai semua dibaca
                             </button>
                         )}
                     </div>
 
-                    {notifications.length === 0 ? (
-                        <div className="p-8 text-center text-gray-500">
-                            <BellIcon className="h-12 w-12 mx-auto mb-2 opacity-20" />
-                            <p>Tidak ada notifikasi</p>
-                        </div>
-                    ) : (
-                        <div className="divide-y divide-gray-100">
-                            {notifications.map((notification) => (
+                    {/* List */}
+                    <div className="max-h-80 overflow-y-auto">
+                        {notifications.length === 0 ? (
+                            <div className="p-8 text-center text-gray-500">
+                                <BellIcon className="h-12 w-12 mx-auto mb-2 opacity-20" />
+                                <p>Tidak ada notifikasi</p>
+                            </div>
+                        ) : (
+                            notifications.map((notif) => (
                                 <div
-                                    key={notification.id}
-                                    className={`p-4 border-l-4 transition ${
-                                        notification.is_read
-                                            ? 'border-l-gray-200 bg-gray-50'
-                                            : 'border-l-blue-500 bg-blue-50'
+                                    key={notif.id}
+                                    className={`p-4 border-b border-gray-100 border-l-4 ${
+                                        notif.is_read ? 'border-l-gray-200 bg-gray-50' : 'border-l-blue-500 bg-blue-50'
                                     }`}
                                 >
-                                    <div className="flex justify-between items-start gap-3">
-                                        <div className="flex-1">
-                                            <h4 className="font-semibold text-gray-800 text-sm">{notification.title}</h4>
-                                            <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
-                                            <p className="text-xs text-gray-400 mt-2">{formatTime(notification.created_at)}</p>
+                                    <div className="flex justify-between items-start gap-2">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-gray-800 text-sm">{notif.title}</p>
+                                            <p className="text-sm text-gray-600 mt-1">{notif.message}</p>
+                                            <p className="text-xs text-gray-400 mt-2">{formatTime(notif.created_at)}</p>
                                         </div>
                                         <div className="flex gap-1">
-                                            {!notification.is_read && (
+                                            {!notif.is_read && (
                                                 <button
-                                                    onClick={() => handleMarkAsRead(notification.id)}
-                                                    className="p-1 hover:bg-gray-200 rounded text-gray-500 hover:text-gray-700"
+                                                    type="button"
+                                                    onClick={() => onMarkAsRead(notif.id)}
+                                                    disabled={actionInProgress}
+                                                    className="p-1.5 rounded hover:bg-white text-gray-500 hover:text-green-600 disabled:opacity-50"
                                                     title="Tandai dibaca"
                                                 >
                                                     <CheckIcon className="h-4 w-4" />
                                                 </button>
                                             )}
                                             <button
-                                                onClick={() => handleDelete(notification.id)}
-                                                className="p-1 hover:bg-red-100 rounded text-gray-500 hover:text-red-600"
+                                                type="button"
+                                                onClick={() => onDelete(notif.id)}
+                                                disabled={actionInProgress}
+                                                className="p-1.5 rounded hover:bg-white text-gray-500 hover:text-red-600 disabled:opacity-50"
                                                 title="Hapus"
                                             >
                                                 <TrashIcon className="h-4 w-4" />
@@ -233,17 +258,10 @@ export function NotificationBell() {
                                         </div>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    )}
+                            ))
+                        )}
+                    </div>
                 </div>
-            )}
-
-            {isOpen && (
-                <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setIsOpen(false)}
-                />
             )}
         </div>
     );

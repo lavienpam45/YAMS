@@ -340,40 +340,6 @@ export default function Welcome({ auth }: PageProps) {
                         </div>
                     </section>
 
-                    {/* 5. SECURITY & COMPLIANCE */}
-                    <section id="security" className="py-20 md:py-32 bg-gradient-to-b from-white to-emerald-50 relative" style={{
-                        backgroundImage: `radial-gradient(circle at 50% 20%, rgba(12, 126, 70, 0.06) 0%, transparent 60%)`
-                    }}>
-                        <div className="container mx-auto px-4 md:px-8">
-                            <div className="max-w-3xl">
-                                <h2 className="text-5xl md:text-6xl font-black mb-6 tracking-tight text-gray-900">
-                                    Dipercaya oleh<br />
-                                    <span style={{ color: '#0C7E46' }}>Universitas Yarsi</span>
-                                </h2>
-                                <p className="text-xl text-gray-700 mb-8">
-                                    YAMS dirancang khusus untuk memenuhi kebutuhan manajemen aset universitas modern dengan standar keamanan internasional.
-                                </p>
-
-                                <div className="grid md:grid-cols-2 gap-6">
-                                    <div className="flex gap-4">
-                                        <ShieldCheck className="h-6 w-6 flex-shrink-0" style={{ color: '#0C7E46' }} />
-                                        <div>
-                                            <h4 className="font-bold mb-2 text-gray-900">Enkripsi End-to-End</h4>
-                                            <p className="text-gray-700 text-sm">Semua data terenkripsi dan tersimpan aman</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <Users className="h-6 w-6 flex-shrink-0" style={{ color: '#0C7E46' }} />
-                                        <div>
-                                            <h4 className="font-bold mb-2 text-gray-900">Keamanan Data</h4>
-                                            <p className="text-gray-700 text-sm">Akses terkontrol per departemen dengan audit trail lengkap</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
                     {/* 5.5. USE CASES / MANFAAT SECTION */}
                     <section id="manfaat" className="py-20 md:py-32 bg-white relative" style={{
                         backgroundImage: `
@@ -537,15 +503,6 @@ export default function Welcome({ auth }: PageProps) {
                                     </div>
                                 ))}
                             </div>
-
-                            {/* CTA dalam FAQ */}
-                            <div className="mt-16 text-center">
-                                <p className="text-gray-700 mb-6">Masih ada pertanyaan lain?</p>
-                                <a href="mailto:support@yarsi.ac.id" className="inline-flex items-center gap-2 text-lg font-bold" style={{ color: '#0C7E46' }}>
-                                    Hubungi Tim Support
-                                    <span>→</span>
-                                </a>
-                            </div>
                         </div>
                     </section>
 
@@ -589,7 +546,7 @@ export default function Welcome({ auth }: PageProps) {
 
                     {/* 8. CTA FINAL */}
                     <section className="py-20 md:py-32 relative overflow-hidden">
-                        <div className="absolute inset-0" style={{ backgroundColor: '#0C7E46' }}></div>
+                        <div className="absolute inset-0" style={{ backgroundColor: 'rgba(12, 126, 70, 0.5)' }}></div>
                         <div className="absolute inset-0 opacity-10 bg-gradient-to-r from-transparent via-white to-transparent"></div>
 
                         <div className="container mx-auto px-4 md:px-8 relative z-10 text-center">
@@ -611,75 +568,45 @@ export default function Welcome({ auth }: PageProps) {
                     </section>
                 </main>
 
-                {/* 9. CONTACT SECTION */}
-                <section id="contact" className="py-20 md:py-32 bg-white relative" style={{
-                    backgroundImage: `
-                        radial-gradient(circle at 30% 60%, rgba(12, 126, 70, 0.12) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 40%, rgba(16, 185, 129, 0.10) 0%, transparent 50%)
-                    `
-                }}>
-                    <div className="container mx-auto px-4 md:px-8">
-                        <div className="max-w-4xl mx-auto text-center">
-                            <div className="inline-block px-4 py-2 rounded-full border-2 mb-6" style={{ borderColor: '#0C7E46', backgroundColor: 'rgba(12, 126, 70, 0.08)' }}>
-                                <span className="text-sm font-semibold" style={{ color: '#0C7E46' }}>HUBUNGI KAMI</span>
-                            </div>
-                            <h2 className="text-5xl md:text-6xl font-black mb-6 tracking-tight text-gray-900">
-                                Butuh Informasi<br />
-                                <span style={{ color: '#0C7E46' }}>Lebih Lanjut?</span>
-                            </h2>
-                            <p className="text-xl text-gray-700 mb-12">
-                                Tim support kami siap membantu implementasi YAMS di institusi Anda
-                            </p>
-
-                            {/* Contact Info Cards */}
-                            <div className="grid md:grid-cols-3 gap-8 mb-12">
-                                <div className="p-8 rounded-2xl border-2 bg-white shadow-sm hover:shadow-md transition-all" style={{ borderColor: '#0C7E46' }}>
-                                    <div className="text-4xl mb-4">📧</div>
-                                    <h3 className="font-bold text-xl mb-2 text-gray-900">Email</h3>
-                                    <a href="mailto:support@yarsi.ac.id" className="text-gray-700 hover:text-green-700 transition text-lg font-semibold">
-                                        support@yarsi.ac.id
-                                    </a>
-                                </div>
-                                <div className="p-8 rounded-2xl border-2 bg-white shadow-sm hover:shadow-md transition-all" style={{ borderColor: '#0C7E46' }}>
-                                    <div className="text-4xl mb-4">📍</div>
-                                    <h3 className="font-bold text-xl mb-2 text-gray-900">Lokasi</h3>
-                                    <p className="text-gray-700 text-lg">
-                                        Universitas Yarsi<br />Jakarta, Indonesia
-                                    </p>
-                                </div>
-                                <div className="p-8 rounded-2xl border-2 bg-white shadow-sm hover:shadow-md transition-all" style={{ borderColor: '#0C7E46' }}>
-                                    <div className="text-4xl mb-4">⏰</div>
-                                    <h3 className="font-bold text-xl mb-2 text-gray-900">Jam Layanan</h3>
-                                    <p className="text-gray-700 text-lg">
-                                        Senin - Jumat<br />09:00 - 17:00 WIB
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                {/* FOOTER */}
+                <footer className="relative overflow-hidden" style={{ backgroundColor: '#0C7E46' }}>
+                    {/* Decorative Elements */}
+                    <div className="absolute inset-0 opacity-10">
+                        <div className="absolute top-0 left-1/4 w-64 h-64 bg-white rounded-full blur-3xl"></div>
+                        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white rounded-full blur-3xl"></div>
                     </div>
-                </section>
-
-                {/* 10. FOOTER */}
-                <footer className="py-12 bg-gradient-to-b from-emerald-50 to-emerald-100 border-t" style={{ borderColor: '#0C7E46' }}>
-                    <div className="container mx-auto px-4 md:px-8">
-                        <div className="grid md:grid-cols-3 gap-12 mb-8">
-                            <div>
-                                <h3 className="font-black text-2xl mb-2" style={{ color: '#0C7E46' }}>YAMS</h3>
-                                <p className="text-gray-700">Solusi manajemen aset untuk era digital</p>
+                    
+                    <div className="container mx-auto px-4 md:px-8 relative z-10">
+                        {/* Main Footer Content */}
+                        <div className="py-16 flex flex-col md:flex-row items-center justify-between gap-8">
+                            {/* Logo & Branding */}
+                            <div className="flex items-center gap-4">
+                                <div className="h-14 w-14 rounded-xl flex items-center justify-center bg-white shadow-lg">
+                                    <img src="/images/logo-yarsi.png" alt="YAMS Logo" className="h-10 w-10 object-contain" />
+                                </div>
+                                <div>
+                                    <h3 className="text-3xl font-black text-white tracking-tight">YAMS</h3>
+                                    <p className="text-white/70 text-sm">Yarsi Asset Management System</p>
+                                </div>
                             </div>
-                            <div>
-                                <h4 className="font-bold mb-4 text-gray-900">Kontak</h4>
-                                <a href="mailto:support@yarsi.ac.id" className="text-gray-700 hover:text-green-700 transition font-semibold">
-                                    📧 support@yarsi.ac.id
-                                </a>
-                            </div>
-                            <div>
-                                <h4 className="font-bold mb-4 text-gray-900">Institusi</h4>
-                                <p className="text-gray-700">Universitas Yarsi<br />Jakarta, Indonesia</p>
+                            
+                            {/* Institution Info */}
+                            <div className="text-center md:text-right">
+                                <p className="text-white font-semibold text-lg">Universitas Yarsi</p>
+                                <p className="text-white/70">Jakarta, Indonesia</p>
                             </div>
                         </div>
-                        <div className="border-t border-green-200 pt-8 text-center text-gray-600 text-sm">
-                            <p>&copy; 2025 YAMS. All rights reserved. Dikembangkan untuk Universitas Yarsi.</p>
+                        
+                        {/* Bottom Bar */}
+                        <div className="border-t border-white/20 py-6">
+                            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                                <p className="text-white/80 text-sm">
+                                    &copy; 2026 YAMS. All rights reserved.
+                                </p>
+                                <p className="text-white/60 text-sm">
+                                    Dikembangkan untuk Universitas Yarsi
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </footer>

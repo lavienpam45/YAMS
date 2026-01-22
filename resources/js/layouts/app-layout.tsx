@@ -96,7 +96,7 @@ export default function AppLayout({ children, title }: AppLayoutProps) {
                     <h1 className="text-xl font-semibold text-gray-800">{title}</h1>
 
                     <div className="flex items-center gap-2">
-                        <NotificationBell />
+                        <NotificationBell key={`notif-${auth.user.id}`} />
 
                         {/* Profile Dropdown */}
                         <div className="relative">

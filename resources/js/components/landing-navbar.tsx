@@ -58,14 +58,6 @@ export default function LandingNavbar() {
                                 <span className="absolute bottom-0 left-0 w-0 h-0.5 group-hover:w-full transition-all" style={{ backgroundColor: '#ffffff' }}></span>
                             </button>
                             <button
-                                onClick={() => scrollToSection('security')}
-                                className="text-sm font-semibold transition-colors relative group"
-                                style={{ color: '#ffffff' }}
-                            >
-                                Keamanan
-                                <span className="absolute bottom-0 left-0 w-0 h-0.5 group-hover:w-full transition-all" style={{ backgroundColor: '#ffffff' }}></span>
-                            </button>
-                            <button
                                 onClick={() => scrollToSection('manfaat')}
                                 className="text-sm font-semibold transition-colors relative group"
                                 style={{ color: '#ffffff' }}
@@ -79,14 +71,6 @@ export default function LandingNavbar() {
                                 style={{ color: '#ffffff' }}
                             >
                                 FAQ
-                                <span className="absolute bottom-0 left-0 w-0 h-0.5 group-hover:w-full transition-all" style={{ backgroundColor: '#ffffff' }}></span>
-                            </button>
-                            <button
-                                onClick={() => scrollToSection('contact')}
-                                className="text-sm font-semibold transition-colors relative group cursor-pointer"
-                                style={{ color: '#ffffff' }}
-                            >
-                                Hubungi
                                 <span className="absolute bottom-0 left-0 w-0 h-0.5 group-hover:w-full transition-all" style={{ backgroundColor: '#ffffff' }}></span>
                             </button>
                         </>
